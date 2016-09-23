@@ -1,0 +1,4 @@
+service logcatd /system/bin/logcat -b all -f /sdcard/logcat -r 256
+class main
+user root
+group root

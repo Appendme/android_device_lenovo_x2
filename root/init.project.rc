@@ -1,0 +1,262 @@
+# MTK project .rc configure
+
+import init.mt6595.usb.rc
+
+on init
+    mkdir /mnt/media_rw/usbotg 0700 media_rw media_rw
+    mkdir /storage/usbotg 0700 root root
+
+on post-fs-data
+
+#
+# Connectivity related device nodes & configuration (begin)
+#
+
+#/dev/ttyMT2 for Connectivity BT/FM/GPS usage
+    chmod 0660 /dev/ttyMT2
+    chown system system /dev/ttyMT2
+
+
+# STP, WMT, GPS, FM and BT Driver
+#   insmod /system/lib/modules/mtk_hif_sdio.ko
+#   insmod /system/lib/modules/mtk_stp_wmt.ko
+#   insmod /system/lib/modules/mtk_stp_uart.ko
+#   insmod /system/lib/modules/mtk_stp_gps.ko
+#   insmod /system/lib/modules/mtk_stp_bt.ko
+#   insmod /system/lib/modules/mtk_fm_drv.ko
+#   insmod /system/lib/modules/mtk_wmt_wifi.ko
+
+#SMB
+    chown system system /proc/smb/ScreenComm
+    chmod 0660 /proc/smb/ScreenComm
+
+# Create char device file for WMT, GPS, BT, FM, WIFI
+#    mknod /dev/stpwmt c 190 0;
+#    mknod /dev/stpgps c 191 0;
+#    mknod /dev/stpbt  c 192 0;
+
+#    chmod 0660 /dev/stpwmt
+#    chown system system /dev/stpwmt
+
+#    chmod 0660 /dev/wmtdetect
+#    chown system system /dev/wmtdetect
+
+#    mknod /dev/wmtWifi c 153 0
+#    chmod 0660 /dev/wmtWifi
+#    chown system system /dev/wmtWifi
+
+
+#Camera
+    chmod 0660 /dev/GAF001AF
+    chown system camera /dev/GAF001AF
+   
+    chmod 0660 /dev/DW9714AF
+    chown system camera /dev/DW9714AF
+    
+    chmod 0660 /dev/DW9718AF
+    chown system camera /dev/DW9718AF
+    
+    chmod 0664 /sys/class/leds/torch/brightness
+    chown system system /sys/class/leds/torch/brightness
+
+    chmod 0660 /dev/AD5820AF
+    chown system camera /dev/AD5820AF
+    
+    chmod 0660 /dev/BU64745GWZAF
+    chown system camera /dev/BU64745GWZAF
+    
+    chmod 0660 /dev/LC898212AF
+    chown system camera /dev/LC898212AF
+
+# BT
+#    chmod 0660 /dev/stpbt
+#    chown bluetooth radio /dev/stpbt
+
+# GPS
+#    chown gps gps /dev/stpgps
+    chown gps gps /sys/class/gpsdrv/gps/pwrctl
+    chown gps gps /sys/class/gpsdrv/gps/suspend
+    chown gps gps /sys/class/gpsdrv/gps/state
+    chown gps gps /sys/class/gpsdrv/gps/pwrsave
+    chown gps gps /sys/class/gpsdrv/gps/status
+#    chmod 0660 /dev/stpgps
+
+# WiFi
+    mkdir /data/misc/wifi 0770 wifi wifi
+    mkdir /data/misc/wifi/sockets 0770 wifi wifi
+    mkdir /data/misc/wpa_supplicant 0770 wifi wifi
+    chown wifi wifi /data/misc/wifi
+
+# ANT
+#lenovo-sw wengjun1 add 20141105 begin
+    chown system system /sys/board_properties/tpd_suspend_status
+#lenovo-sw wengjun1 add 20141105 end
+#lenovo-sw liuyw2 4/8/2015 add.  tpd glove group
+	chown system system /sys/board_properties/tpd_glove_status
+
+	chmod 0660 /dev/stpant
+	chown ant radio /dev/stpant
+
+#Disable for one Single loader
+# Load WiFi Driver
+#   insmod /system/lib/modules/wlan_mt.ko
+
+# Char device for BT 3.0 HS
+    mknod /dev/ampc0 c 151 0
+    chown bluetooth bluetooth /dev/ampc0
+    chmod 0660 /dev/ampc0
+
+#
+# Connectivity related device nodes & configuration (end)
+#
+
+#/dev/ttyMT1 for ext_mdinit
+    chmod 0660 /dev/ttyMT1
+    chown system system /dev/ttyMT1
+
+#lenovo wangyq13 add for cywee sensorhub
+chmod 0664  /sys/devices/bus.1/11010000.I2C3/i2c-3/3-003a/input/input2/firmware_update_cmd
+chown system system /sys/devices/bus.1/11010000.I2C3/i2c-3/3-003a/input/input2/firmware_update_cmd
+chmod 0664  /sys/devices/bus.1/11010000.I2C3/i2c-3/3-003a/input/input2/calibrator_cmd
+chown system system /sys/devices/bus.1/11010000.I2C3/i2c-3/3-003a/input/input2/calibrator_cmd
+chmod 0664  /sys/devices/bus.1/11010000.I2C3/i2c-3/3-003a/input/input2/cal_check
+chown system system /sys/devices/bus.1/11010000.I2C3/i2c-3/3-003a/input/input2/cal_check
+chmod 0644 /sys/class/leds/lcd-backlight/brightness
+chown system system /sys/class/leds/lcd-backlight/brightness
+chmod 0644 /sys/class/leds/button-backlight/brightness
+chown system system /sys/class/leds/button-backlight/brightness
+#lenovo chailu1 add for charger
+chmod 0664  /sys/devices/platform/battery/po_fmt
+chown system system /sys/devices/platform/battery/po_fmt
+chmod 0664  /sys/devices/platform/bq27531-user/fw
+chown system system /sys/devices/platform/bq27531-user/fw
+
+chmod 777 /system/bin/firmware_update
+
+
+# Encrypt phone function
+    setprop vold.post_fs_data_done 1
+
+on init
+    # Refer to http://source.android.com/devices/tech/storage/index.html
+    # It said, "Starting in Android 4.4, multiple external storage devices are surfaced to developers through
+    #           Context.getExternalFilesDirs(), Context.getExternalCacheDirs(), and Context.getObbDirs().
+    #           External storage devices surfaced through these APIs must be a semi-permanent part of the device (such as an SD card slot in a battery compartment).
+    #           Developers expect data stored in these locations to be available over long periods of time."
+    # Therefore, if the target doesn't support sd hot-plugging (Ex: the SD card slot in a battery compartment), we need to export SECONDARY_STORAGE in 'boot' section
+    #
+    # export SECONDARY_STORAGE /storage/sdcard1
+
+service atci_service /system/bin/atci_service 
+	socket atci-service stream 660 radio system 
+	socket atci-serv-fw stream 660 radio system 
+	user root 
+        disabled
+	group radio system                         
+service atcid-daemon-u /system/bin/atcid
+	user system
+	group radio system media
+	disabled
+	oneshot
+
+service atcid-daemon-e /system/bin/atcid
+	user root
+	group radio system
+	disabled
+	oneshot
+
+on early_property:ro.build.type=eng
+start atci_service
+start atcid-daemon-e
+service audio-daemon /system/bin/audiocmdservice_atci
+    class main
+    socket atci-audio stream 660 media system
+    user media
+    group nvram media system sdcard_rw
+    disabled
+    oneshot
+
+service fuse_usbotg /system/bin/sdcard -u 1023 -g 1023 -w 1023 -d /mnt/media_rw/usbotg /storage/usbotg
+    class late_start
+    disabled
+
+#
+# Connectivity related services (Begin)
+#
+
+service wmt_loader /system/bin/wmt_loader
+	class core
+	user root
+	group root
+	oneshot
+
+service 66xx_launcher /system/bin/6620_launcher -m 4 -p /system/etc/firmware/
+    user system
+    group system
+    class core
+
+
+#
+# Connectivity related services (End)
+#
+    mkdir /dev/pipes 0771 system system
+    restorecon /dev/pipes
+    export VIBE_PIPE_PATH /dev/pipes
+  
+# TouchSense Player Service -- now minimally working without blob!
+service openimmvibed /system/bin/openimmvibed
+     class main
+     #user root
+     #group root
+     user system
+     group system
+     oneshot
+ 
+# but we still want to coexist with the original blob, in case some apps
+# with bundled ImmVibeJ wants to talk with the vibrator directly.
+service immvibed /system/bin/immvibed -p 99 -u 1000
+     class main
+     user root
+     group root
+     oneshot
+
+#
+# External MD service
+#
+service ext_mdinit /system/bin/ext_mdinit  /dev/ttyMT1
+    user system
+    group  radio system shell
+    class core
+    oneshot
+
+#  Modem related services (Begin)
+#
+service pppd_gprs /system/bin/pppd_dt /dev/ttyACM0 debug noauth refuse-eap usepeerdns nodetach
+    user root
+    group radio cache inet misc
+    disabled
+    oneshot
+#
+#  Modem related services (End)
+#
+
+# cywee sensor hub firmware_update
+  #chmod 777 /system/bin/firmware_update
+service firmware_update  /system/bin/firmware_update /system/bin/firmware_update
+	class core
+	user root
+	group root
+	oneshot
+
+#lenovo-sw wangkl3 add for PEGASUS-6804 begin
+service nac_server /system/bin/nac_server
+    class  main
+    user root
+
+service nac_ue /system/bin/nac_ue
+    class  main
+    user root
+#lenovo-sw wangkl3 add for PEGASUS-6804 end
+
+
+
