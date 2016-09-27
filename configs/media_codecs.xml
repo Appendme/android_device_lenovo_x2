@@ -169,7 +169,7 @@ Only the three quirks included above are recognized at this point:
         </MediaCodec>
 
         <MediaCodec name="OMX.google.vp8.decoder" type="video/x-vnd.on2.vp8" />
-        <MediaCodec name="OMX.google.h264.decoder" type="video/avc" />
+        <!--MediaCodec name="OMX.google.h264.decoder" type="video/avc" /-->
 
     </Decoders>
 
