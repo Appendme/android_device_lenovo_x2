@@ -25,3 +25,7 @@ extern "C" int _ZN10CpuCtrlImp7disableEv() {
 extern "C" int _ZN10CpuCtrlImp6uninitEv() {
 	return 0;
 }
+
+extern "C" int _ZN7android16CameraParameters25KEY_SNAPSHOT_PICTURE_FLIPE() {
+	return 0;
+}

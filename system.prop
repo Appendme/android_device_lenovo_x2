@@ -190,3 +190,4 @@ ro.mtk_privacy_protection_lock=1
 ro.mtk_bg_power_saving_support=1
 ro.mtk_bg_power_saving_ui=1
 wfd.dummy.enable=1
+persist.xen0n.mx_circle=0

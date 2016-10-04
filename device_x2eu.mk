@@ -24,7 +24,7 @@ PRODUCT_PACKAGES += \
 PRODUCT_LOCALES := ru_RU
 
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
-    persist.sys.timezone=Asia/Yekaterinburg
+    persist.sys.timezone=Asia/Krasnoyarsk
 
 # various MTK ABI fixes
 # this is the approach of the cm-13.0 sprout port
