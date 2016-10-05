@@ -6,8 +6,8 @@
   * Audio
   * Tethering (Wifi, Bluetooth and USB)
   * Camera (photo, video recording)
+  * Sensors
 
 * Not working
   * RIL
-  * Sensors
   * GPS
