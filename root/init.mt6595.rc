@@ -8,7 +8,8 @@ import init.ssd.rc
 import init.mal.rc
 import init.wfca.rc
 import init.epdg.rc
-import init.logcat.rc
+import init.modem.rc
+#import init.logcat.rc
 #import init.no_ssd.rc
 #import init.ssd_nomuser.rc
 #import init.fon.rc

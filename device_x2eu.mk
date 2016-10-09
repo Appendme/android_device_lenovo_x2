@@ -188,18 +188,18 @@ PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     persist.sys.usb.config=mtp \
     ro.hardware=mt6595 \
 
-# NFC
-#PRODUCT_PACKAGES += \
-#    com.android.nfc_extras \
-#    Tag
-#PRODUCT_COPY_FILES += \
-#    packages/apps/Nfc/migrate_nfc.txt:system/etc/updatecmds/migrate_nfc.txt \
-#    frameworks/native/data/etc/android.hardware.nfc.xml:system/etc/permissions/android.hardware.nfc.xml \
-#    frameworks/native/data/etc/com.nxp.mifare.xml:system/etc/permissions/com.nxp.mifare.xml \
-#    frameworks/native/data/etc/com.android.nfc_extras.xml:system/etc/permissions/com.android.nfc_extras.xml
-
 PRODUCT_PACKAGES += \
     Torch
+
+PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
+ro.adb.secure=0 \
+ro.secure=0 \
+ro.allow.mock.location=0 \
+ro.debuggable=1 \
+dalvik.vm.dex2oat-Xms=64m \
+dalvik.vm.dex2oat-Xmx=512m \
+dalvik.vm.image-dex2oat-Xms=64m \
+dalvik.vm.image-dex2oat-Xmx=64m \
 
 
 $(call inherit-product, build/target/product/full.mk)
