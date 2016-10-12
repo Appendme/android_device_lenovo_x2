@@ -19,14 +19,14 @@ on post-fs-data
     restorecon_recursive /protect_f
     restorecon_recursive /protect_s
     
-service gsm0710muxd /system/bin/gsm0710muxd -s /dev/ttyC0 -f 512 -n 8 -m basic
+service gsm0710muxd /system/bin/gsm0710muxd -s /dev/ttyC0 -f 512 -n 6 -m basic
     class core
     user root
     group radio cache inet misc
     disabled
     oneshot
 
-service gsm0710muxdmd2 /system/bin/gsm0710muxdmd2 -s /dev/ccci2_tty0 -f 512 -n 8 -m basic
+service gsm0710muxdmd2 /system/bin/gsm0710muxdmd2 -s /dev/ccci2_tty0 -f 512 -n 6 -m basic
     class core
     user root
     group radio cache inet misc
