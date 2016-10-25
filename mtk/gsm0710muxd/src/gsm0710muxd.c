@@ -851,7 +851,7 @@ static int logical_channel_close(Channel *channel)
             unlink(channel->ptslink);
 #endif  /* MUX_ANDROID */
         close(channel->fd);
-        LOGMUX(LOG_DEBUG, "logical_channel_close close(channel->fd);");
+        LOGMUX(LOG_DEBUG, "loical_channel_close close(channel->fd);");
         channel->fd = -1;
     }
 
@@ -3800,7 +3800,7 @@ int main(int argc, char *argv[])
             break;
         case 'n':
             vir_ports = atoi(optarg);
-            //vir_ports = MUXD_CH_NUM_ALL - 1;
+            vir_ports = MUXD_CH_NUM_ALL - 1;
 
             // Validate vir_prorts
             if ((vir_ports > GSM0710_MAX_CHANNELS - 1) || (vir_ports < 1)) {

@@ -58,8 +58,10 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     Gello \
 
-PRODUCT_PACKAGES += \
-	OpenWeatherMapProvider \
+# 
+#PRODUCT_PACKAGES += \
+#	OpenWeatherMapProvider \
+#	YahooWeatherProvider \
 
 # Audio
 PRODUCT_PACKAGES += \
@@ -118,6 +120,7 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     gps.mt6595 \
     mtk_agpsd \
+    YGPS \
 
 # Vibration
 PRODUCT_PACKAGES += \
@@ -200,6 +203,10 @@ dalvik.vm.dex2oat-Xms=64m \
 dalvik.vm.dex2oat-Xmx=512m \
 dalvik.vm.image-dex2oat-Xms=64m \
 dalvik.vm.image-dex2oat-Xmx=64m \
+
+# Screen density
+PRODUCT_AAPT_CONFIG := normal
+PRODUCT_AAPT_PREF_CONFIG := xxhdpi
 
 
 $(call inherit-product, build/target/product/full.mk)
