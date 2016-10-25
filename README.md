@@ -7,7 +7,9 @@
   * Tethering (Wifi, Bluetooth and USB)
   * Camera (photo, video recording)
   * Sensors
+  * GPS
+  * RIL
 
 * Not working
-  * RIL
-  * GPS
+  * DRM
+  * Light indicator
