@@ -2,14 +2,15 @@
 
 * Working
   * Wifi
+  * RIL
+  * GPS
   * Bluetooth
   * Audio
   * Tethering (Wifi, Bluetooth and USB)
   * Camera (photo, video recording)
   * Sensors
-  * GPS
-  * RIL
 
 * Not working
-  * DRM
-  * Light indicator
+  * DRM
+  * Light indicator
+  
