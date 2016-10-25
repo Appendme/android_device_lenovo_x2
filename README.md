@@ -2,6 +2,8 @@
 
 * Working
   * Wifi
+  * RIL
+  * GPS
   * Bluetooth
   * Audio
   * Tethering (Wifi, Bluetooth and USB)
@@ -9,5 +11,6 @@
   * Sensors
 
 * Not working
-  * RIL
-  * GPS
+  * DRM
+  * Light indicator
+  
