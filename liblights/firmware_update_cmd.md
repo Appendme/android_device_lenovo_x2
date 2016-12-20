@@ -11,3 +11,5 @@
 "20 0 5" - Green static
 
 "20 0 6" - Blue static
+
+"20 0 7" - RED > GREEN > BLUE > RED > GREEN > BLUE > ... (Static)
