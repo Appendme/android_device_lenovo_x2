@@ -189,8 +189,7 @@
         <item>255</item>
 	</integer-array>
 
-    <!-- MX devices normally don't light up their buttons while operating -->
-	<integer name="config_buttonBrightnessSettingDefault">0</integer>
+	<integer name="config_buttonBrightnessSettingDefault">255</integer>
 
 	<!-- below disabled for M bringup -->
 
