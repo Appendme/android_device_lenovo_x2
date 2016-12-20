@@ -254,6 +254,51 @@ blink_mx_led(int level, int onMS, int offMS)
     return 0;
 }
 
+static int blink_red(int level, int onMS, int offMS)
+{
+    static int preStatus = 0; // 0: off, 1: blink, 2: no blink
+    int nowStatus;
+    int i = 0;
+
+    if (level == 0)
+        nowStatus = 0;
+    else if (onMS && offMS)
+        nowStatus = 1;
+    else
+        nowStatus = 2;
+
+    if (preStatus == nowStatus)
+        return -1;
+#ifdef LIGHTS_DBG_ON
+    ALOGD("blink_red, level=%d, onMS=%d, offMS=%d\n", level, onMS, offMS);
+#endif
+    if (nowStatus == 0) {
+        write_str(RED_TRIGGER_FILE, "none");
+        write_int(RED_LED_FILE, 0);
+    }
+    else if (nowStatus == 1) {
+//          write_int(RED_LED_FILE, level); // default full brightness
+        write_str(RED_TRIGGER_FILE, "timer");
+        while (((access(RED_DELAY_OFF_FILE, W_OK) == -1) || (access(RED_DELAY_OFF_FILE, W_OK) == -1)) && i<10) {
+            ALOGD("waiting for delay timer files; retries=%d", i);
+            led_wait_delay(5);//sleep 5ms for wait kernel LED class create led delay_off/delay_on node of fs
+            i++;
+        }
+        write_int(RED_DELAY_OFF_FILE, offMS);
+        write_int(RED_DELAY_ON_FILE, onMS);
+    }
+    else {
+        write_str(RED_TRIGGER_FILE, "none");
+
+        // TODO: more appropriate brightness selection
+        write_int(RED_LED_FILE, 255); // default full brightness
+    }
+
+    preStatus = nowStatus;
+
+    return 0;
+}
+
 static int
 handle_trackball_light_locked(struct light_device_t* dev)
 {
