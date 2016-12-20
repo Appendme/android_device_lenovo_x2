@@ -111,7 +111,7 @@ char const*const BLUE_TRIGGER_FILE      = "/sys/class/leds/blue/trigger";
 /* LCD BACKLIGHT */
 char const*const LCD_FILE               = "/sys/class/leds/lcd-backlight//brightness";
 /* KEYBOARD BACKLIGHT */
-char const*const KEYBOARD_FILE          = "/sys/class/leds/keyboard-backlight/brightness";
+//char const*const KEYBOARD_FILE          = "/sys/class/leds/keyboard-backlight/brightness";
 /* BUTTON BACKLIGHT */
 char const*const BUTTON_FILE            = "/sys/class/leds/button-backlight/brightness";
 
@@ -286,18 +286,6 @@ static int set_light_backlight(struct light_device_t* dev,
     return err;
 }
 
-static int
-set_light_keyboard(struct light_device_t* dev,
-        struct light_state_t const* state)
-{
-    int err = 0;
-    int on = is_lit(state);
-    pthread_mutex_lock(&g_lock);
-    err = write_int(KEYBOARD_FILE, on?255:0);
-    pthread_mutex_unlock(&g_lock);
-    return err;
-}
-
 static int set_light_buttons(struct light_device_t *dev,
             struct light_state_t const *state)
 {
@@ -305,7 +293,7 @@ static int set_light_buttons(struct light_device_t *dev,
     int brightness = rgb_to_brightness(state);
 
     pthread_mutex_lock(&g_lock);
-    err = write_int(LED_ENABLE_FILE, brightness);
+    err = write_int(BUTTON_FILE, brightness);
     pthread_mutex_unlock(&g_lock);
 
     return err;
@@ -444,9 +432,6 @@ static int open_lights(const struct hw_module_t* module, char const* name,
 
     if (0 == strcmp(LIGHT_ID_BACKLIGHT, name)) {
         set_light = set_light_backlight;
-    }
-    else if (0 == strcmp(LIGHT_ID_KEYBOARD, name)) {
-        set_light = set_light_keyboard;
     }
     else if (0 == strcmp(LIGHT_ID_BUTTONS, name)) {
         set_light = set_light_buttons;
