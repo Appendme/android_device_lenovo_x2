@@ -7,9 +7,9 @@
  * reproduction, modification, use or disclosure of MediaTek Software, and
  * information contained herein, in whole or in part, shall be strictly
  * prohibited.
- *
+ * 
  * MediaTek Inc. (C) 2010. All rights reserved.
- *
+ * 
  * BY OPENING THIS FILE, RECEIVER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
  * THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
  * RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO RECEIVER
@@ -70,8 +70,6 @@
 
 #include <hardware/lights.h>
 
-#include "brightness_map_generated.h"
-
 // #define LIGHTS_DBG_ON
 /******************************************************************************/
 
@@ -86,31 +84,30 @@ static int g_buttons = 0;
 static int g_attention = 0;
 
 /* TRACKBALL BACKLIGHT */
-char const*const TRACKBALL_FILE     = "/sys/class/leds/jogball-backlight/brightness";
-
-/* MX LED */
-char const*const MX_LED_FILE       = "/sys/class/leds/mx-led/brightness";
-char const*const MX_TRIGGER_FILE   = "/sys/class/leds/mx-led/trigger";
-char const*const MX_DELAY_ON_FILE  = "/sys/class/leds/mx-led/delay_on";
-char const*const MX_DELAY_OFF_FILE = "/sys/class/leds/mx-led/delay_off";
+char const*const TRACKBALL_FILE
+        = "/sys/class/leds/jogball-backlight/brightness";
 
 /*LENOVO X2 LED*/
-char const*const RGBLED_LED_FILE           = "/sys/devices/platform/mt-i2c.3/i2c-3/3-003a/input/input1/firmware_update_cmd";
-/*RED*/
+char const*const RGBLED_LED_FILE        = "/sys/devices/bus.1/11010000.I2C3/i2c-3/3-003a/input/input2/firmware_update_cmd";
+//char const*const RGBLED_LED_FILE        = "/sys/devices/platform/mt-i2c.3/i2c-3/3-003a/input/input1/firmware_update_cmd";
+/*RED
 char const*const RED_LED_FILE           = "/sys/class/leds/red/brightness";
 char const*const RED_DELAY_ON_FILE      = "/sys/class/leds/red/delay_on";
 char const*const RED_DELAY_OFF_FILE     = "/sys/class/leds/red/delay_off";
 char const*const RED_TRIGGER_FILE       = "/sys/class/leds/red/trigger";
-/*GREEN*/
+*/
+/*GREEN
 char const*const GREEN_LED_FILE         = "/sys/class/leds/green/brightness";
 char const*const GREEN_DELAY_ON_FILE    = "/sys/class/leds/green/delay_on";
 char const*const GREEN_DELAY_OFF_FILE   = "/sys/class/leds/green/delay_off";
 char const*const GREEN_TRIGGER_FILE     = "/sys/class/leds/green/trigger";
-/*BLUE*/
+*/
+/*BLUE
 char const*const BLUE_LED_FILE          = "/sys/class/leds/blue/brightness";
 char const*const BLUE_DELAY_ON_FILE     = "/sys/class/leds/blue/delay_on";
 char const*const BLUE_DELAY_OFF_FILE    = "/sys/class/leds/blue/delay_off";
 char const*const BLUE_TRIGGER_FILE      = "/sys/class/leds/blue/trigger";
+*/
 /* LCD BACKLIGHT */
 char const*const LCD_FILE               = "/sys/class/leds/lcd-backlight//brightness";
 /* KEYBOARD BACKLIGHT */
@@ -119,7 +116,7 @@ char const*const KEYBOARD_FILE          = "/sys/class/leds/keyboard-backlight/br
 char const*const BUTTON_FILE            = "/sys/class/leds/button-backlight/brightness";
 
 //ALPS0804285 add for delay
-int led_wait_delay(int ms)
+int led_wait_delay(int ms) 
 {
     struct timespec req = {.tv_sec = 0, .tv_nsec = ms*1000000};
     struct timespec rem;
@@ -156,8 +153,7 @@ void init_globals(void)
 
 }
 
-static int
-write_int(char const* path, int value)
+static int write_int(char const* path, int value)
 {
     int fd;
 
@@ -180,8 +176,7 @@ write_int(char const* path, int value)
     }
 }
 
-static int
-write_str(char const* path, char *str)
+static int write_str(char const* path, char *str)
 {
     int fd;
 
@@ -201,20 +196,18 @@ write_str(char const* path, char *str)
     }
 }
 
-static int
-is_lit(struct light_state_t const* state)
+static int is_lit(struct light_state_t const* state)
 {
     return state->color & 0x00ffffff;
 }
 
-static int
-blink_mx_led(int level, int onMS, int offMS)
+static int blink_led(int clor,/* int level,*/ int onMS, int offMS)
 {
     static int preStatus = 0; // 0: off, 1: blink, 2: no blink
     int nowStatus;
     int i = 0;
 
-    if (level == 0)
+    if (clor == 0)
         nowStatus = 0;
     else if (onMS && offMS)
         nowStatus = 1;
@@ -225,82 +218,36 @@ blink_mx_led(int level, int onMS, int offMS)
         return -1;
 
 #ifdef LIGHTS_DBG_ON
-    ALOGD("blink_mx_led, level=%d, onMS=%d, offMS=%d\n", level, onMS, offMS);
+    ALOGD("blink_led, color=%d, onMS=%d, offMS=%d\n", clor,/* level,*/ onMS, offMS);
 #endif
     if (nowStatus == 0) {
-        write_str(MX_TRIGGER_FILE, "none");
-        write_int(MX_LED_FILE, 0);
+        write_str(RGBLED_LED_FILE, "20 0 0");
     }
-    else if (nowStatus == 1) {
-//          write_int(MX_LED_FILE, level); // default full brightness
-        write_str(MX_TRIGGER_FILE, "timer");
-        while (((access(MX_DELAY_OFF_FILE, W_OK) == -1) || (access(MX_DELAY_OFF_FILE, W_OK) == -1)) && i<10) {
-            ALOGD("waiting for delay timer files; retries=%d", i);
-            led_wait_delay(5);//sleep 5ms for wait kernel LED class create led delay_off/delay_on node of fs
-            i++;
-        }
-        write_int(MX_DELAY_OFF_FILE, offMS);
-        write_int(MX_DELAY_ON_FILE, onMS);
+    else if (nowStatus == 1 && clor == 1) {
+        write_str(RGBLED_LED_FILE, "20 0 1");
     }
-    else {
-        write_str(MX_TRIGGER_FILE, "none");
-
-        // TODO: more appropriate brightness selection
-        write_int(MX_LED_FILE, 255); // default full brightness
+    else if (nowStatus == 1 && clor == 2) {
+        write_str(RGBLED_LED_FILE, "20 0 2");
     }
-
+    else if (nowStatus == 1 && clor == 3) {
+        write_str(RGBLED_LED_FILE, "20 0 3");
+    }
+    else if (nowStatus == 2 && clor == 1) {
+        write_str(RGBLED_LED_FILE, "20 0 4");
+    }
+    else if (nowStatus == 2 && clor == 2) {
+        write_str(RGBLED_LED_FILE, "20 0 5");
+    }
+    else if (nowStatus == 2 && clor == 3) {
+        write_str(RGBLED_LED_FILE, "20 0 6");
+    }
     preStatus = nowStatus;
 
     return 0;
 }
 
-static int blink_red(int level, int onMS, int offMS)
-{
-    static int preStatus = 0; // 0: off, 1: blink, 2: no blink
-    int nowStatus;
-    int i = 0;
 
-    if (level == 0)
-        nowStatus = 0;
-    else if (onMS && offMS)
-        nowStatus = 1;
-    else
-        nowStatus = 2;
-
-    if (preStatus == nowStatus)
-        return -1;
-#ifdef LIGHTS_DBG_ON
-    ALOGD("blink_red, level=%d, onMS=%d, offMS=%d\n", level, onMS, offMS);
-#endif
-    if (nowStatus == 0) {
-        write_str(RED_TRIGGER_FILE, "none");
-        write_int(RED_LED_FILE, 0);
-    }
-    else if (nowStatus == 1) {
-//          write_int(RED_LED_FILE, level); // default full brightness
-        write_str(RED_TRIGGER_FILE, "timer");
-        while (((access(RED_DELAY_OFF_FILE, W_OK) == -1) || (access(RED_DELAY_OFF_FILE, W_OK) == -1)) && i<10) {
-            ALOGD("waiting for delay timer files; retries=%d", i);
-            led_wait_delay(5);//sleep 5ms for wait kernel LED class create led delay_off/delay_on node of fs
-            i++;
-        }
-        write_int(RED_DELAY_OFF_FILE, offMS);
-        write_int(RED_DELAY_ON_FILE, onMS);
-    }
-    else {
-        write_str(RED_TRIGGER_FILE, "none");
-
-        // TODO: more appropriate brightness selection
-        write_int(RED_LED_FILE, 255); // default full brightness
-    }
-
-    preStatus = nowStatus;
-
-    return 0;
-}
-
-static int
-handle_trackball_light_locked(struct light_device_t* dev)
+static int handle_trackball_light_locked(struct light_device_t* dev)
 {
     int mode = g_attention;
 
@@ -319,51 +266,22 @@ handle_trackball_light_locked(struct light_device_t* dev)
     return write_int(TRACKBALL_FILE, mode);
 }
 
-static int
-rgb_to_brightness(struct light_state_t const* state)
+static int rgb_to_brightness(struct light_state_t const* state)
 {
     int color = state->color & 0x00ffffff;
     return ((77*((color>>16)&0x00ff))
             + (150*((color>>8)&0x00ff)) + (29*(color&0x00ff))) >> 8;
 }
 
-static int
-to_mx4_brightness(const int brightness)
-{
-    if (brightness <= 0) {
-        return 0;
-    }
-
-    if (brightness >= 256) {
-        return 2047;
-    }
-
-    return BRIGHTNESS_MAP[brightness];
-}
-
-static int
-do_set_light_buttons(int on);
-
-static int
-set_light_backlight(struct light_device_t* dev,
+static int set_light_backlight(struct light_device_t* dev,
         struct light_state_t const* state)
 {
     int err = 0;
     int brightness = rgb_to_brightness(state);
+
     pthread_mutex_lock(&g_lock);
-    g_backlight = brightness;
-    err = write_int(LCD_FILE, to_mx4_brightness(brightness));
-    if (g_haveTrackballLight) {
-        handle_trackball_light_locked(dev);
-    }
-
+    err = write_int(LCD_FILE, brightness);
     pthread_mutex_unlock(&g_lock);
-
-    // sync with buttons if buttons are on
-    if (g_buttons) {
-        // the parameters are effectively unused
-        do_set_light_buttons(1);
-    }
 
     return err;
 }
@@ -380,30 +298,20 @@ set_light_keyboard(struct light_device_t* dev,
     return err;
 }
 
-static int
-set_light_buttons(struct light_device_t* dev,
-        struct light_state_t const* state)
+static int set_light_buttons(struct light_device_t *dev,
+            struct light_state_t const *state)
 {
     int err = 0;
-    int on = is_lit(state);
-    return do_set_light_buttons(on);
-}
+    int brightness = rgb_to_brightness(state);
 
-static int
-do_set_light_buttons(int on)
-{
-    int err = 0;
     pthread_mutex_lock(&g_lock);
-    g_buttons = on;
-    // make button brightness adapt to current backlight brightness
-    write_str(MX_TRIGGER_FILE, "none");
-    err = write_int(BUTTON_FILE, on?g_backlight:0);
+    err = write_int(LED_ENABLE_FILE, brightness);
     pthread_mutex_unlock(&g_lock);
+
     return err;
 }
 
-static int
-set_speaker_light_locked(struct light_device_t* dev,
+static int set_speaker_light_locked(struct light_device_t* dev,
         struct light_state_t const* state)
 {
     int len;
@@ -438,19 +346,23 @@ set_speaker_light_locked(struct light_device_t* dev,
     } else { // alpha = 0 means turn the LED off
         red = green = blue = 0;
     }
-
-    if (red || green || blue) {
-        blink_mx_led(255, onMS, offMS);
+    if (red) {
+        blink_led(1, onMS, offMS);
+    }
+    if (green) {
+        blink_led(2, onMS, offMS);
+    }
+    if (blue) {
+        blink_led(3, onMS, offMS);
     }
     else {
-        blink_mx_led(0, 0, 0);
+        blink_led(0, 0, 0);
     }
 
     return 0;
 }
 
-static void
-handle_speaker_battery_locked(struct light_device_t* dev)
+static void handle_speaker_battery_locked(struct light_device_t* dev)
 {
     if (is_lit(&g_battery)) {
         set_speaker_light_locked(dev, &g_battery);
@@ -460,8 +372,7 @@ handle_speaker_battery_locked(struct light_device_t* dev)
     }
 }
 
-static int
-set_light_battery(struct light_device_t* dev,
+static int set_light_battery(struct light_device_t* dev,
         struct light_state_t const* state)
 {
     pthread_mutex_lock(&g_lock);
@@ -474,8 +385,7 @@ set_light_battery(struct light_device_t* dev,
     return 0;
 }
 
-static int
-set_light_notifications(struct light_device_t* dev,
+static int set_light_notifications(struct light_device_t* dev,
         struct light_state_t const* state)
 {
     pthread_mutex_lock(&g_lock);
@@ -490,8 +400,7 @@ set_light_notifications(struct light_device_t* dev,
     return 0;
 }
 
-static int
-set_light_attention(struct light_device_t* dev,
+static int set_light_attention(struct light_device_t* dev,
         struct light_state_t const* state)
 {
     pthread_mutex_lock(&g_lock);
@@ -511,8 +420,7 @@ set_light_attention(struct light_device_t* dev,
 
 
 /** Close the lights device */
-static int
-close_lights(struct light_device_t *dev)
+static int close_lights(struct light_device_t *dev)
 {
     if (dev) {
         free(dev);
