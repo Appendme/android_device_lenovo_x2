@@ -109,7 +109,7 @@ char const*const BLUE_DELAY_OFF_FILE    = "/sys/class/leds/blue/delay_off";
 char const*const BLUE_TRIGGER_FILE      = "/sys/class/leds/blue/trigger";
 */
 /* LCD BACKLIGHT */
-char const*const LCD_FILE               = "/sys/class/leds/lcd-backlight//brightness";
+char const*const LCD_FILE               = "/sys/class/leds/lcd-backlight/brightness";
 /* KEYBOARD BACKLIGHT */
 //char const*const KEYBOARD_FILE          = "/sys/class/leds/keyboard-backlight/brightness";
 /* BUTTON BACKLIGHT */
