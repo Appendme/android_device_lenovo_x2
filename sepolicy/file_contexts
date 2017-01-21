@@ -563,11 +563,11 @@
 /data/autok_[0-9]*_.* u:object_r:autokd_data_file:s0
 
 # Meizu additions
-#/system/xbin/MPED u:object_r:mped_exec:s0
-#/dev/tspdrv u:object_r:tspdrv_device:s0
-#/system/bin/immvibed u:object_r:immvibed_exec:s0
-#/dev/pipes u:object_r:immvibe_pipe:s0
-#/sys/devices/bus\.1/11010000\.I2C3/i2c-3/3-001e/ps_calibration u:object_r:meizu_ps_calibration_trigger:s0
+/system/xbin/MPED u:object_r:mped_exec:s0
+/dev/tspdrv u:object_r:tspdrv_device:s0
+/system/bin/immvibed u:object_r:immvibed_exec:s0
+/dev/pipes u:object_r:immvibe_pipe:s0
+/sys/devices/bus\.1/11010000\.I2C3/i2c-3/3-001e/ps_calibration u:object_r:meizu_ps_calibration_trigger:s0
 /dev/i2c-3 u:object_r:tfa9890_i2c_device:s0
 /dev/LC898212XD u:object_r:LC898212XD_device:s0
 
@@ -575,13 +575,13 @@
 # no filetrans_pattern
 #/data/mpe_mnl/mnl2mpe u:object_r:mped_mpe2mnl_socket:s0
 #/data/mpe_mnl/mpe2mnl u:object_r:mped_mnl2mpe_socket:s0
-#/data/mtk_mpe_server u:object_r:mped_server_socket:s0
+/data/mtk_mpe_server u:object_r:mped_server_socket:s0
 
 # xen0n files
 # TODO
-#/system/bin/proj-dev-setup u:object_r:proj_dev_setup_exec:s0
-#/system/bin/openimmvibed   u:object_r:openimmvibed_exec:s0
-#/system/bin/meizupshelper  u:object_r:meizupshelper_exec:s0
+/system/bin/proj-dev-setup u:object_r:proj_dev_setup_exec:s0
+/system/bin/openimmvibed   u:object_r:openimmvibed_exec:s0
+/system/bin/meizupshelper  u:object_r:meizupshelper_exec:s0
 
-#/dev/pipes/immvibecontrol  u:object_r:openimmvibed_control_socket:s0
-#/data/\.libimmvibeclient_force u:object_r:openimmvibed_data_file:s0
+/dev/pipes/immvibecontrol  u:object_r:openimmvibed_control_socket:s0
+/data/\.libimmvibeclient_force u:object_r:openimmvibed_data_file:s0

@@ -100,7 +100,7 @@
 
     <!-- Flag indicating emergency calls will always use IMS irrespective of the state of
     the IMS connection -->
-    <bool name="useImsAlwaysForEmergencyCall">true</bool>
+	<!-- <bool name="useImsAlwaysForEmergencyCall">true</bool> -->
 
     <!-- Flag indicating whether the IMS service can be turned off. If false then
         the service will not be turned-off completely (the ImsManager.turnOffIms() will
@@ -108,10 +108,10 @@
     <bool name="imsServiceAllowTurnOff">true</bool>
 
     <!-- Flag specifying whether VoLTE is available on device -->
-    <bool name="config_device_volte_available">true</bool>
+    <bool name="config_device_volte_available">false</bool>
 
     <!-- Flag specifying whether VT is available on device -->
-    <bool name="config_device_vt_available">true</bool>
+    <bool name="config_device_vt_available">false</bool>
 
     <string-array name="config_tether_usb_regexs">
         <item>rndis\\d</item>
@@ -125,6 +125,30 @@
         <item>"bt-pan"</item>
         <item>"bt-dun"</item>   
     </string-array>
+
+    <!-- Is the notification LED intrusive? Used to decide if there should be a disable option -->
+    <bool name="config_intrusiveNotificationLed">true</bool>
+
+    <!-- Is the battery LED intrusive? Used to decide if there should be a disable option -->
+    <bool name="config_intrusiveBatteryLed">true</bool>
+
+    <!-- Does the notification LED support multiple colors? Used to decide if the user can change the colors -->
+    <bool name="config_multiColorNotificationLed">true</bool>
+
+    <!-- Does the battery LED support multiple colors? Used to decide if the user can change the colors -->
+    <bool name="config_multiColorBatteryLed">true</bool>
+
+    <!-- Default color for notification LED is green. -->
+    <color name="config_defaultNotificationColor">#ff00ff00</color>
+
+    <!-- Default value for led color when battery is low on charge -->
+    <integer name="config_notificationsBatteryLowARGB">0xffff0000</integer>
+
+    <!-- Default value for led color when battery is medium charged -->
+    <integer name="config_notificationsBatteryMediumARGB">0xffff0000</integer>
+
+    <!-- Default value for led color when battery is fully charged -->
+    <integer name="config_notificationsBatteryFullARGB">0xff00ff00</integer>   
 
     <bool name="config_wifi_background_scan_support">true</bool>
 
@@ -189,6 +213,7 @@
         <item>255</item>
 	</integer-array>
 
+    <!-- MX devices normally don't light up their buttons while operating -->
 	<integer name="config_buttonBrightnessSettingDefault">255</integer>
 
 	<!-- below disabled for M bringup -->

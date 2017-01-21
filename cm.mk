@@ -12,7 +12,7 @@ $(call inherit-product, device/lenovo/x2eu/device_x2eu.mk)
 
 ## Device identifier. This must come after all inclusions
 PRODUCT_DEVICE := x2eu
-PRODUCT_NAME := cm_x2eu
+PRODUCT_NAME := lineage_x2eu
 PRODUCT_BRAND := Lenovo
 PRODUCT_MODEL := Lenovo Vibe X2
 PRODUCT_MANUFACTURER := LENOVO
