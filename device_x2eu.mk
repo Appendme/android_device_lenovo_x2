@@ -55,8 +55,8 @@ PRODUCT_PACKAGES += \
     libnvramagentclient \
 
 # Use CM Gello browser
-PRODUCT_PACKAGES += \
-    Gello \
+#PRODUCT_PACKAGES += \
+#    Gello \
 
 # 
 #PRODUCT_PACKAGES += \
@@ -120,10 +120,9 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     gps.mt6595 \
     mtk_agpsd \
-    YGPS \
 
 # Vibration
-PRODUCT_PACKAGES += \
+#PRODUCT_PACKAGES += \
     openimmvibed \
 
 

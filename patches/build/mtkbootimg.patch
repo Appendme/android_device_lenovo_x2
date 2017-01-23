@@ -1,0 +1,82 @@
+diff --git a/core/Makefile b/core/Makefile
+index e74b2c5..7013112 100644
+--- a/core/Makefile
++++ b/core/Makefile
+@@ -2106,6 +2106,15 @@ endif
+ ifdef TARGET_RELEASETOOL_FACTORY_FROM_TARGET_SCRIPT
+ 	$(hide) echo "factory_from_target_script=$(TARGET_RELEASETOOL_FACTORY_FROM_TARGET_SCRIPT)" >> $(zip_root)/META/misc_info.txt
+ endif
++ifeq ($(BOARD_HAS_MTK_HARDWARE),true)
++ifneq ($(BOARD_DONT_USE_MTK_BOOTIMG),true)
++ 	$(hide) echo "mtk_hardware=1" >> $(zip_root)/META/misc_info.txt
++else
++  	$(hide) echo "mtk_hardware=0" >> $(zip_root)/META/misc_info.txt
++endif
++else
++	$(hide) echo "mtk_hardware=0" >> $(zip_root)/META/misc_info.txt
++endif
+ 	$(call generate-userimage-prop-dictionary, $(zip_root)/META/misc_info.txt)
+ ifneq ($(INSTALLED_RECOVERYIMAGE_TARGET),)
+ ifeq ($(TARGET_RELEASETOOL_MAKE_RECOVERY_PATCH_SCRIPT),)
+diff --git a/tools/releasetools/common.py b/tools/releasetools/common.py
+index 41559c4..207c065 100755
+--- a/tools/releasetools/common.py
++++ b/tools/releasetools/common.py
+@@ -274,6 +274,7 @@ def LoadInfoDict(input_file, input_dir=None):
+   makeint("recovery_size")
+   makeint("boot_size")
+   makeint("fstab_version")
++  makeint("mtk_hardware")
+ 
+   system_root_image = d.get("system_root_image", None) == "true"
+   if d.get("no_recovery", None) != "true":
+@@ -419,7 +420,7 @@ def DumpInfoDict(d):
+ 
+ 
+ def _BuildBootableImage(sourcedir, fs_config_file, info_dict=None,
+-                        has_ramdisk=False):
++                        has_ramdisk=False, mtk_flavor=None):
+   """Build a bootable image from the specified sourcedir.
+ 
+   Take a kernel, cmdline, and optionally a ramdisk directory from the input (in
+@@ -522,6 +523,9 @@ def _BuildBootableImage(sourcedir, fs_config_file, info_dict=None,
+     if args and args.strip():
+       cmd.extend(shlex.split(args))
+ 
++    if info_dict.get("mtk_hardware"):
++      cmd.extend(["--mtk", mtk_flavor, ])
++
+     args = info_dict.get("mkbootimg_version_args", None)
+     if args and args.strip():
+       cmd.extend(shlex.split(args))
+@@ -536,6 +540,7 @@ def _BuildBootableImage(sourcedir, fs_config_file, info_dict=None,
+     else:
+       cmd.extend(["--output", img.name])
+ 
++  print cmd
+   p = Run(cmd, stdout=subprocess.PIPE)
+   p.communicate()
+   assert p.returncode == 0, "mkbootimg of %s image failed" % (
+@@ -645,6 +650,8 @@ def GetBootableImage(name, prebuilt_name, unpack_dir, tree_subdir,
+   Look for it in 'unpack_dir'/BOOTABLE_IMAGES under the name 'prebuilt_name',
+   otherwise look for it under 'unpack_dir'/IMAGES, otherwise construct it from
+   the source files in 'unpack_dir'/'tree_subdir'."""
++  if info_dict is None:
++    info_dict = OPTIONS.info_dict
+ 
+   prebuilt_path = os.path.join(unpack_dir, "BOOTABLE_IMAGES", prebuilt_name)
+   if os.path.exists(prebuilt_path):
+@@ -669,9 +676,12 @@ def GetBootableImage(name, prebuilt_name, unpack_dir, tree_subdir,
+                  info_dict.get("recovery_as_boot") == "true")
+ 
+   fs_config = "META/" + tree_subdir.lower() + "_filesystem_config.txt"
++  mtk_flavor = None
++  if info_dict.get("mtk_hardware"):
++    mtk_flavor = os.path.splitext(os.path.basename(name))[0]
+   data = _BuildBootableImage(os.path.join(unpack_dir, tree_subdir),
+                              os.path.join(unpack_dir, fs_config),
+-                             info_dict, has_ramdisk)
++                             info_dict, has_ramdisk, mtk_flavor)
+   if data:
+     return File(name, data)
+   return None
