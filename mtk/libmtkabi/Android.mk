@@ -21,8 +21,12 @@ LOCAL_SRC_FILES := \
     mtkcam_cpuctrl.cpp \
     mtk_atci.cpp \
     mtk_gui.cpp
+
+# mtk_ui.cpp \
+#mtk_omx.cpp \
+#mtk_audio.cpp
     
-LOCAL_SHARED_LIBRARIES := libbinder libutils
+LOCAL_SHARED_LIBRARIES := libbinder libutils libgui
 LOCAL_MODULE := libmtkabi
 LOCAL_MODULE_TAGS := optional
 
