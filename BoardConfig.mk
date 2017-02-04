@@ -247,6 +247,8 @@ BOARD_SEPOLICY_DIRS += \
     $(DEVICE_FOLDER_COMMON)/sepolicy
 
 POLICYVERS := 28
+# Seccomp filter
+BOARD_SECCOMP_POLICY := $(LOCAL_PATH)/seccomp
 
 # Enable Minikin text layout engine (will be the default soon)
 USE_MINIKIN := true
