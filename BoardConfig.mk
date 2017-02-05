@@ -38,7 +38,7 @@ BOARD_CACHEIMAGE_PARTITION_SIZE := 134217728
 BOARD_FLASH_BLOCK_SIZE := 131072
 
 # Kernel
-BOARD_KERNEL_CMDLINE := bootopt=64S3,32N2,32N2 androidboot.selinux=permissive
+BOARD_KERNEL_CMDLINE := androidboot.selinux=permissive
 BOARD_KERNEL_BASE := 0x40000000
 BOARD_KERNEL_PAGESIZE := 2048
 BOARD_MKBOOTIMG_ARGS := \
@@ -246,7 +246,7 @@ TW_CUSTOM_CPU_TEMP_PATH := /sys/devices/virtual/thermal/thermal_zone1/temp
 BOARD_SEPOLICY_DIRS += \
     $(DEVICE_FOLDER_COMMON)/sepolicy
 
-POLICYVERS := 28
+POLICYVERS := 29
 # Seccomp filter
 BOARD_SECCOMP_POLICY := $(LOCAL_PATH)/seccomp
 
