@@ -1,17 +1,34 @@
 diff --git a/core/Makefile b/core/Makefile
-index e74b2c5..7013112 100644
+index ae40d4f..8a3c1e4 100644
 --- a/core/Makefile
 +++ b/core/Makefile
-@@ -2106,6 +2106,15 @@ endif
+@@ -569,6 +569,10 @@ ifeq ($(strip $(BOARD_KERNEL_SEPARATED_DT)),true)
+   BOOTIMAGE_EXTRA_DEPS    := $(INSTALLED_DTIMAGE_TARGET)
+ endif
+ 
++ifeq ($(strip $(BOARD_HAS_MTK_HARDWARE)),true)
++  INTERNAL_BOOTIMAGE_ARGS += --mtk boot
++endif
++
+ INSTALLED_BOOTIMAGE_TARGET := $(PRODUCT_OUT)/boot.img
+ 
+ # BOARD_USES_RECOVERY_AS_BOOT = true must have BOARD_BUILD_SYSTEM_ROOT_IMAGE = true.
+@@ -1031,6 +1035,9 @@ ifeq ($(strip $(BOARD_KERNEL_SEPARATED_DT)),true)
+   INTERNAL_RECOVERYIMAGE_ARGS += --dt $(INSTALLED_DTIMAGE_TARGET)
+   RECOVERYIMAGE_EXTRA_DEPS    := $(INSTALLED_DTIMAGE_TARGET)
+ endif
++ifeq ($(strip $(BOARD_HAS_MTK_HARDWARE)),true)
++  INTERNAL_RECOVERYIMAGE_ARGS += --mtk recovery
++endif
+ 
+ # Keys authorized to sign OTA packages this build will accept.  The
+ # build always uses dev-keys for this; release packaging tools will
+@@ -2097,6 +2104,11 @@ endif
  ifdef TARGET_RELEASETOOL_FACTORY_FROM_TARGET_SCRIPT
  	$(hide) echo "factory_from_target_script=$(TARGET_RELEASETOOL_FACTORY_FROM_TARGET_SCRIPT)" >> $(zip_root)/META/misc_info.txt
  endif
 +ifeq ($(BOARD_HAS_MTK_HARDWARE),true)
-+ifneq ($(BOARD_DONT_USE_MTK_BOOTIMG),true)
-+ 	$(hide) echo "mtk_hardware=1" >> $(zip_root)/META/misc_info.txt
-+else
-+  	$(hide) echo "mtk_hardware=0" >> $(zip_root)/META/misc_info.txt
-+endif
++	$(hide) echo "mtk_hardware=1" >> $(zip_root)/META/misc_info.txt
 +else
 +	$(hide) echo "mtk_hardware=0" >> $(zip_root)/META/misc_info.txt
 +endif
@@ -19,10 +36,10 @@ index e74b2c5..7013112 100644
  ifneq ($(INSTALLED_RECOVERYIMAGE_TARGET),)
  ifeq ($(TARGET_RELEASETOOL_MAKE_RECOVERY_PATCH_SCRIPT),)
 diff --git a/tools/releasetools/common.py b/tools/releasetools/common.py
-index 41559c4..207c065 100755
+index f90010f..c4c142f 100644
 --- a/tools/releasetools/common.py
 +++ b/tools/releasetools/common.py
-@@ -274,6 +274,7 @@ def LoadInfoDict(input_file, input_dir=None):
+@@ -260,6 +260,7 @@ def LoadInfoDict(input_file, input_dir=None):
    makeint("recovery_size")
    makeint("boot_size")
    makeint("fstab_version")
@@ -30,7 +47,7 @@ index 41559c4..207c065 100755
  
    system_root_image = d.get("system_root_image", None) == "true"
    if d.get("no_recovery", None) != "true":
-@@ -419,7 +420,7 @@ def DumpInfoDict(d):
+@@ -405,7 +406,7 @@ def DumpInfoDict(d):
  
  
  def _BuildBootableImage(sourcedir, fs_config_file, info_dict=None,
@@ -39,34 +56,35 @@ index 41559c4..207c065 100755
    """Build a bootable image from the specified sourcedir.
  
    Take a kernel, cmdline, and optionally a ramdisk directory from the input (in
-@@ -522,6 +523,9 @@ def _BuildBootableImage(sourcedir, fs_config_file, info_dict=None,
-     if args and args.strip():
-       cmd.extend(shlex.split(args))
+@@ -515,12 +516,16 @@ def _BuildBootableImage(sourcedir, fs_config_file, info_dict=None,
+     if has_ramdisk:
+       cmd.extend(["--ramdisk", ramdisk_img.name])
  
 +    if info_dict.get("mtk_hardware"):
 +      cmd.extend(["--mtk", mtk_flavor, ])
 +
-     args = info_dict.get("mkbootimg_version_args", None)
-     if args and args.strip():
-       cmd.extend(shlex.split(args))
-@@ -536,6 +540,7 @@ def _BuildBootableImage(sourcedir, fs_config_file, info_dict=None,
+     img_unsigned = None
+     if info_dict.get("vboot", None):
+       img_unsigned = tempfile.NamedTemporaryFile()
+       cmd.extend(["--output", img_unsigned.name])
      else:
-       cmd.extend(["--output", img.name])
+-      cmd.extend(["--output", img.name])
++      cmd.extend(["--ramdisk", ramdisk_img.name,
++                  "--output", img.name])
  
-+  print cmd
    p = Run(cmd, stdout=subprocess.PIPE)
    p.communicate()
-   assert p.returncode == 0, "mkbootimg of %s image failed" % (
-@@ -645,6 +650,8 @@ def GetBootableImage(name, prebuilt_name, unpack_dir, tree_subdir,
-   Look for it in 'unpack_dir'/BOOTABLE_IMAGES under the name 'prebuilt_name',
+@@ -632,6 +637,9 @@ def GetBootableImage(name, prebuilt_name, unpack_dir, tree_subdir,
    otherwise look for it under 'unpack_dir'/IMAGES, otherwise construct it from
    the source files in 'unpack_dir'/'tree_subdir'."""
+ 
 +  if info_dict is None:
 +    info_dict = OPTIONS.info_dict
- 
++
    prebuilt_path = os.path.join(unpack_dir, "BOOTABLE_IMAGES", prebuilt_name)
    if os.path.exists(prebuilt_path):
-@@ -669,9 +676,12 @@ def GetBootableImage(name, prebuilt_name, unpack_dir, tree_subdir,
+     print "using prebuilt %s from BOOTABLE_IMAGES..." % (prebuilt_name,)
+@@ -655,9 +663,12 @@ def GetBootableImage(name, prebuilt_name, unpack_dir, tree_subdir,
                   info_dict.get("recovery_as_boot") == "true")
  
    fs_config = "META/" + tree_subdir.lower() + "_filesystem_config.txt"

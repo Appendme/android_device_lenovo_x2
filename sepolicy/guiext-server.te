@@ -13,10 +13,10 @@ type guiext-server_exec, exec_type, file_type;
 init_daemon_domain(guiext-server)
 
 # for bqdump and conversion pool
-binder_service(guiext-server)
-binder_use(guiext-server)
-binder_call({domain -init}, guiext-server)
-binder_call(guiext-server, {domain -init})
+#binder_service(guiext-server)
+#binder_use(guiext-server)
+#binder_call({domain -init}, guiext-server)
+#binder_call(guiext-server, {domain -init})
 
 # to allocate GraphicBuffer
 allow guiext-server surfaceflinger:binder call;
@@ -50,3 +50,5 @@ allow guiext-server permission_service:service_manager find;
 
 # allow guiext-server to read/write fifo
 allow guiext-server surfaceflinger:fifo_file {read write};
+
+allow guiext-server servicemanager:binder { transfer call };

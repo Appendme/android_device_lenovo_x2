@@ -1,0 +1,69 @@
+diff --git a/audioserver.te b/audioserver.te
+index da12649..9ea6589 100644
+--- a/audioserver.te
++++ b/audioserver.te
+@@ -53,3 +53,7 @@ neverallow audioserver { file_type fs_type }:file execute_no_trans;
+ 
+ # audioserver should never need network access. Disallow network sockets.
+ neverallow audioserver domain:{ tcp_socket udp_socket rawip_socket } *;
++
++allow audioserver ccci_device:chr_file { rw_file_perms ioctl };
++allow audioserver audiohal_prop:file { r_file_perms getattr };
++allow audioserver sysfs:file r_file_perms;
+diff --git a/cameraserver.te b/cameraserver.te
+index 4f50f8d..a620d5c 100644
+--- a/cameraserver.te
++++ b/cameraserver.te
+@@ -37,3 +37,14 @@ neverallow cameraserver { file_type fs_type }:file execute_no_trans;
+ 
+ # cameraserver should never need network access. Disallow network sockets.
+ neverallow cameraserver domain:{ tcp_socket udp_socket rawip_socket } *;
++
++allow cameraserver camera_isp_device:chr_file { rw_file_perms ioctl};
++allow cameraserver proc:file { r_file_perms ioctl };
++allow cameraserver kd_camera_hw_device:chr_file { rw_file_perms ioctl };
++allow cameraserver CAM_CAL_DRV_device:chr_file { rw_file_perms ioctl };
++allow cameraserver sysfs:file { r_file_perms ioctl };
++allow cameraserver proc_meminfo:file { r_file_perms getattr };
++allow cameraserver kd_camera_flashlight_device:chr_file { rw_file_perms ioctl };
++allow cameraserver gpu_device:chr_file { rw_file_perms ioctl };
++allow cameraserver DW9718AF_device:chr_file { rw_file_perms ioctl };
++allow cameraserver system_server:unix_stream_socket { read write };
+diff --git a/mediacodec.te b/mediacodec.te
+index 3d3625a..8f8b214 100644
+--- a/mediacodec.te
++++ b/mediacodec.te
+@@ -28,3 +28,8 @@ neverallow mediacodec { file_type fs_type }:file execute_no_trans;
+ 
+ # mediacodec should never need network access. Disallow network sockets.
+ neverallow mediacodec domain:{ tcp_socket udp_socket rawip_socket } *;
++
++allow mediacodec proc:file { r_file_perms ioctl getattr };
++allow mediacodec proc_meminfo:file { r_file_perms getattr };
++
++allow mediacodec sysfs:file r_file_perms;
+diff --git a/servicemanager.te b/servicemanager.te
+index 84605d1..5b78ddd 100644
+--- a/servicemanager.te
++++ b/servicemanager.te
+@@ -13,5 +13,10 @@ init_daemon_domain(servicemanager)
+ allow servicemanager self:binder set_context_mgr;
+ allow servicemanager { domain -init }:binder transfer;
+ 
++allow servicemanager guiext-server:dir search;
++allow servicemanager guiext-server:file r_file_perms;
++allow servicemanager guiext-server:process getattr;
++
++
+ # Check SELinux permissions.
+ selinux_check_access(servicemanager)
+diff --git a/system_server.te b/system_server.te
+index 03a7ef3..92562c4 100644
+--- a/system_server.te
++++ b/system_server.te
+@@ -578,3 +578,5 @@ neverallow system_server { dev_type -frp_block_device }:blk_file no_rw_file_perm
+ neverallow system_server self:process execmem;
+ neverallow system_server ashmem_device:chr_file execute;
+ neverallow system_server system_server_tmpfs:file execute;
++
++allow system_server wmt_prop:file { r_file_perms getattr };

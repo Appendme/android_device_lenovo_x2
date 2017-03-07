@@ -121,11 +121,6 @@ PRODUCT_PACKAGES += \
     gps.mt6595 \
     mtk_agpsd \
 
-# Vibration
-#PRODUCT_PACKAGES += \
-    openimmvibed \
-
-
 # Keylayout
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/mtk-kpd.kl:system/usr/keylayout/mtk-kpd.kl \
@@ -202,6 +197,14 @@ dalvik.vm.dex2oat-Xms=64m \
 dalvik.vm.dex2oat-Xmx=512m \
 dalvik.vm.image-dex2oat-Xms=64m \
 dalvik.vm.image-dex2oat-Xmx=64m \
+
+ADDITIONAL_DEFAULT_PROPERTIES += \
+	ro.secure=0 \
+	ro.allow.mock.location=1 \
+	ro.debuggable=1 \
+	ro.adb.secure=0 \
+	persist.service.acm.enable=0 \
+	persist.sys.usb.config=mtp,adb
 
 # Screen density
 PRODUCT_AAPT_CONFIG := normal

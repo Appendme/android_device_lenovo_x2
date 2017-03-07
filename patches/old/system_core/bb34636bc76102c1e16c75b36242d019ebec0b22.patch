@@ -1,0 +1,113 @@
+From bb34636bc76102c1e16c75b36242d019ebec0b22 Mon Sep 17 00:00:00 2001
+From: Wang Xuerui <idontknw.wang@gmail.com>
+Date: Sun, 11 Sep 2016 01:01:57 +0800
+Subject: [PATCH] mkbootimg: support (legacy) MTK boot.img format
+
+This is a redo of commit bfb24f4ddcc8dc0a15ca2bc377d3895ffde056d9, which
+is based on the legacy C implementation.
+
+Change-Id: I97325ac4840d998f46b7655860b844dc742fe540
+---
+ mkbootimg/mkbootimg     | 31 ++++++++++++++++++++++---------
+ mkbootimg/unpackbootimg | 11 +++++++++++
+ 2 files changed, 33 insertions(+), 9 deletions(-)
+
+diff --git a/mkbootimg/mkbootimg b/mkbootimg/mkbootimg
+index 5b3b793..43f6f74 100755
+--- a/mkbootimg/mkbootimg
++++ b/mkbootimg/mkbootimg
+@@ -46,18 +46,20 @@ def pad_file(f, padding):
+ 
+ 
+ def write_header(args):
++    mtk_size = 512 if args.mtk is not None else 0
++
+     BOOT_MAGIC = 'ANDROID!'.encode()
+     args.output.write(pack('8s', BOOT_MAGIC))
+     args.output.write(pack('10I',
+-        filesize(args.kernel),                          # size in bytes
++        filesize(args.kernel) + mtk_size,               # size in bytes
+         args.base + args.kernel_offset,                 # physical load addr
+-        filesize(args.ramdisk),                         # size in bytes
++        filesize(args.ramdisk) + mtk_size,              # size in bytes
+         args.base + args.ramdisk_offset,                # physical load addr
+-        filesize(args.second),                          # size in bytes
++        filesize(args.second) + mtk_size,               # size in bytes
+         args.base + args.second_offset,                 # physical load addr
+         args.base + args.tags_offset,                   # physical addr for kernel tags
+         args.pagesize,                                  # flash page size we assume
+-        filesize(args.dt),                              # size in bytes
++        filesize(args.dt) + mtk_size,                   # size in bytes
+         (args.os_version << 11) | args.os_patch_level)) # os version and patch level
+     args.output.write(pack('16s', args.board.encode())) # asciiz product name
+     args.output.write(pack('512s', args.cmdline[:512].encode()))
+@@ -90,9 +92,16 @@ class ValidateStrLenAction(Action):
+         setattr(namespace, self.dest, values)
+ 
+ 
+-def write_padded_file(f_out, f_in, padding):
++def write_padded_file(f_out, f_in, padding, is_mtk=False, mtk_id=''):
+     if f_in is None:
+         return
++
++    if is_mtk:
++        mtk_hdr = pack('<II32s', 0x58881688, filesize(f_in), mtk_id.encode())
++        mtk_hdr_pad = b'\xff' * (512 - len(mtk_hdr))
++        f_out.write(mtk_hdr)
++        f_out.write(mtk_hdr_pad)
++
+     f_out.write(f_in.read())
+     pad_file(f_out, padding)
+ 
+@@ -154,14 +163,18 @@ def parse_cmdline():
+     parser.add_argument('--dt', help='path to the device tree image', type=FileType('rb'))
+     parser.add_argument('-o', '--output', help='output file name', type=FileType('wb'),
+                         required=True)
++    parser.add_argument('--mtk', help='MTK flavor of image to create', default=None,
++                        choices=['boot', 'recovery', ])
+     return parser.parse_args()
+ 
+ 
+ def write_data(args):
+-    write_padded_file(args.output, args.kernel, args.pagesize)
+-    write_padded_file(args.output, args.ramdisk, args.pagesize)
+-    write_padded_file(args.output, args.second, args.pagesize)
+-    write_padded_file(args.output, args.dt, args.pagesize)
++    is_mtk = args.mtk is not None
++    ramdisk_id = 'ROOTFS' if args.mtk == 'boot' else 'RECOVERY'
++    write_padded_file(args.output, args.kernel, args.pagesize, is_mtk, 'KERNEL')
++    write_padded_file(args.output, args.ramdisk, args.pagesize, is_mtk, ramdisk_id)
++    write_padded_file(args.output, args.second, args.pagesize, is_mtk, '')
++    write_padded_file(args.output, args.dt, args.pagesize, is_mtk, '')
+ 
+ 
+ def main():
+diff --git a/mkbootimg/unpackbootimg b/mkbootimg/unpackbootimg
+index b5dc663..e10fae9 100755
+--- a/mkbootimg/unpackbootimg
++++ b/mkbootimg/unpackbootimg
+@@ -112,6 +112,8 @@ def parse_cmdline():
+     parser.add_argument('-o', '--output', help='output directory', default='./')
+     parser.add_argument('--pagesize', help='page size', type=parse_int,
+                         choices=[2**i for i in range(11,18)], default=0)
++    parser.add_argument('--mtk', help='skip MTK header if present', type=parse_int,
++                        choices=[1], default=0)
+     return parser.parse_args()
+ 
+ def seek_padding(f, size, pagesize):
+@@ -122,6 +124,15 @@ def seek_padding(f, size, pagesize):
+ 
+ def write_input_to_file(args, filename, size):
+     with open(filename, 'wb') as f_out:
++        if args.mtk:
++            # skip MTK header if present
++            maybe_mtk_magic = args.input.read(4)
++            if maybe_mtk_magic == '\x88\x16\x88\x58':
++                # skip rest of MTK header
++                args.input.seek(512 - 4, 1)
++                size -= 512
++            else:
++                args.input.seek(-4, 1)
+         f_out.write(args.input.read(size))
+ 
+     seek_padding(args.input, size, args.pagesize)

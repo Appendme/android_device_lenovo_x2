@@ -29,7 +29,7 @@
 #include <hardware/power.h>
 #include "power-feature.h"
 
-#define GESTURE_CONTROL_PATH "/sys/lenovo_tp_gestures/tpd_suspend_status"
+#define GESTURE_CONTROL_PATH "/sys/board_properties/tpd_suspend_status/112233" //https://gist.github.com/Appendme/e92eb5865b6997fff3dc6c515e95f5b8
 #define DOUBLE_TAP_TO_WAKE_ENABLE_VALUE "1"
 #define DOUBLE_TAP_TO_WAKE_DISABLE_VALUE "0"
 

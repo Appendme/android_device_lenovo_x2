@@ -12,4 +12,8 @@
 
 "20 0 6" - Blue static
 
-"20 0 7" - RED > GREEN > BLUE > RED > GREEN > BLUE > ... (Static)
+"20 0 7" - RGB Static
+
+Liblight necessary to rewrite for this https://github.com/Appendme/android_kernel_lenovo_x2/blob/master/drivers/misc/mediatek/CwMcuSensor/CwMcuSensor.c#L1149
+
+/sys/devices/bus.1/11010000.I2C3/i2c-3/3-003a/input/input2/firmware_update_cmd

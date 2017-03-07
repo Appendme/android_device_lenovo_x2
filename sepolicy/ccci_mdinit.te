@@ -91,6 +91,10 @@ allow ccci_mdinit custom_file:dir { search };
 allow ccci_mdinit custom_file:file { open read getattr };
 allow ccci_mdinit mtk_tele_prop:property_service set;
 
+allow ccci_mdinit proc:file { r_file_perms ioctl };
+allow ccci_mdinit sysfs:file r_file_perms;
+allow ccci_mdinit persist_ril_prop:file { r_file_perms getattr };
+
 # Date WK15.13
 # Operation : Migration
 # Purpose : for nand partition access

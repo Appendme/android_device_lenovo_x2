@@ -60,6 +60,8 @@ allow mnld apk_data_file:file { write create };
 allow mnld gps_data_file:dir rw_dir_perms;
 allow mnld gps_data_file:file create_file_perms;
 
+allow mnld wmt_prop:file { r_file_perms getattr };
+
 # Date : WK15.30
 # Operation : Migration
 # Purpose : for device bring up, not to block early migration/sanity

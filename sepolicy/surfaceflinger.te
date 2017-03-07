@@ -74,6 +74,8 @@ allow surfaceflinger proc:file write;
 # notify perf service of SF information for performance
 allow surfaceflinger mtk_perf_service:service_manager find;
 
+allow surfaceflinger guiext-server:binder call;
+
 # Date : WK15.38
 # Operation : Migration
 # Purpose : allow surfaceflinger to find pq_service

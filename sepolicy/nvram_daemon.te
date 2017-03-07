@@ -79,6 +79,9 @@ allow nvram_daemon mtd_device:chr_file { read write open };
 allow nvram_daemon kmsg_device:chr_file { write open };
 allow nvram_daemon proc_lk_env:file { read write ioctl open };
 
+allow nvram_daemon sysfs:file r_file_perms;
+allow nvram_daemon system_data_file:file r_file_perms;
+
 # Purpose: for workaround
 # Todo: Remove this policy
 allow nvram_daemon system_data_file:dir write;

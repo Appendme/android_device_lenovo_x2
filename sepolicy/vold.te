@@ -14,10 +14,10 @@ allow vold nvram_device:chr_file { read write open };
 #allow vold platformblk_device:blk_file { read write open };
 #allow vold platformblk_device:dir search;
 allow vold nvram_device:blk_file rw_file_perms;
-allow vold userdata_block_device:blk_file create_file_perms;
-allow vold para_block_device:blk_file rw_file_perms;
-allow vold misc2_block_device:blk_file rw_file_perms;
-allow vold mmcblk0_block_device:blk_file rw_file_perms;
+#allow vold userdata_block_device:blk_file create_file_perms;
+#allow vold para_block_device:blk_file rw_file_perms;
+#allow vold misc2_block_device:blk_file rw_file_perms;
+#allow vold mmcblk0_block_device:blk_file rw_file_perms;
 #allow vold recovery_block_device:blk_file rw_file_perms;
 allow vold proc:file write;
 
@@ -134,9 +134,9 @@ allow vold resize_exec:file rx_file_perms;
 allow vold proc_mtkcooler:dir r_dir_perms;
 allow vold proc_mtktz:dir r_dir_perms;
 
-allow vold block_device:blk_file { read write ioctl open getattr };
+#allow vold block_device:blk_file rw_file_perms;
 
 # Date : WK15.37
 # Operation : Migration
 # Purpose : for ntfs device mount
-allow vold mmcblk1p1_block_device:blk_file { open read write lock ioctl getattr};
+#allow vold mmcblk1p1_block_device:blk_file { open read write lock ioctl getattr};

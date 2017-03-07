@@ -50,16 +50,15 @@ BOARD_MKBOOTIMG_ARGS := \
 	--tags_offset 0x0e000000 \
 	--board 32
 
-TARGET_PREBUILT_KERNEL := device/lenovo/x2eu/prebuilt/kernel
-
+#TARGET_PREBUILT_KERNEL := device/lenovo/x2eu/prebuilt/kernel
 
 # build kernel from source
-#TARGET_KERNEL_SOURCE := kernel/lenovo/x2eu
-#TARGET_KERNEL_ARCH := arm
-#TARGET_KERNEL_HEADER_ARCH := arm
-#TARGET_KERNEL_CONFIG := x2eu_defconfig
-#TARGET_KERNEL_CROSS_COMPILE_PREFIX := kernel/lenovo/toolchain/bin/arm-eabi-
-#BOARD_KERNEL_IMAGE_NAME := zImage
+TARGET_KERNEL_SOURCE := kernel/lenovo/x2eu
+TARGET_KERNEL_ARCH := arm
+TARGET_KERNEL_HEADER_ARCH := arm
+TARGET_KERNEL_CONFIG := x2to_defconfig
+TARGET_KERNEL_CROSS_COMPILE_PREFIX := /home/append/los14.1/prebuilts/gcc/linux-x86/arm/arm-eabi-4.8/bin/arm-eabi-
+BOARD_KERNEL_IMAGE_NAME := zImage-dtb
 #MTK_APPENDED_DTB_SUPPORT := 
 
 #BOARD_HAS_NO_SELECT_BUTTON := true
@@ -246,7 +245,7 @@ TW_CUSTOM_CPU_TEMP_PATH := /sys/devices/virtual/thermal/thermal_zone1/temp
 BOARD_SEPOLICY_DIRS += \
     $(DEVICE_FOLDER_COMMON)/sepolicy
 
-POLICYVERS := 29
+POLICYVERS := 30
 # Seccomp filter
 BOARD_SECCOMP_POLICY := $(LOCAL_PATH)/seccomp
 
@@ -257,6 +256,6 @@ USE_MINIKIN := true
 BOARD_HARDWARE_CLASS := $(DEVICE_FOLDER_COMMON)/cmhw/
 
 # Hack for building without kernel sources
-ifeq ($(TARGET_DEVICE),x2eu)
-$(shell mkdir -p $(OUT)/obj/KERNEL_OBJ/usr)
-endif
+#ifeq ($(TARGET_DEVICE),x2eu)
+#$(shell mkdir -p $(OUT)/obj/KERNEL_OBJ/usr)
+#endif

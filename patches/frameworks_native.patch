@@ -1,0 +1,167 @@
+diff --git a/include/gui/SensorManager.h b/include/gui/SensorManager.h
+index 6c6230f..136dbca 100644
+--- a/include/gui/SensorManager.h
++++ b/include/gui/SensorManager.h
+@@ -57,7 +57,12 @@ public:
+     ssize_t getSensorList(Sensor const* const** list);
+     ssize_t getDynamicSensorList(Vector<Sensor>& list);
+     Sensor const* getDefaultSensor(int type);
++    #ifdef MTK_HARDWARE
++    sp<SensorEventQueue> createEventQueue(String8 packageName, int mode = 0);
++    sp<SensorEventQueue> createEventQueue();
++    #else
+     sp<SensorEventQueue> createEventQueue(String8 packageName = String8(""), int mode = 0);
++    #endif
+     bool isDataInjectionEnabled();
+ 
+ private:
+@@ -67,6 +72,10 @@ private:
+     SensorManager(const String16& opPackageName);
+     status_t assertStateLocked();
+ 
++#ifdef MTK_HARDWARE
++    SensorManager();
++#endif
++
+ private:
+     static Mutex sLock;
+     static std::map<String16, SensorManager*> sPackageInstances;
+@@ -79,6 +88,13 @@ private:
+     const String16 mOpPackageName;
+ };
+ 
++#ifdef MTK_HARDWARE
++// be compatible with MTK Lollipop blobs
++extern "C" {
++    extern android::Mutex _ZN7android9SingletonINS_13SensorManagerEE5sLockE;
++    extern SensorManager *_ZN7android9SingletonINS_13SensorManagerEE9sInstanceE;
++}
++#endif  // MTK_HARDWARE
+ // ----------------------------------------------------------------------------
+ }; // namespace android
+ 
+diff --git a/include/ui/Fence.h b/include/ui/Fence.h
+index b431bd5..cbe6e81 100644
+--- a/include/ui/Fence.h
++++ b/include/ui/Fence.h
+@@ -110,6 +110,10 @@ private:
+     const Fence& operator = (const Fence& rhs) const;
+ 
+     int mFenceFd;
++    #ifdef MTK_HARDWARE
++    private:
++    void dump(int fd);
++    #endif
+ };
+ 
+ }; // namespace android
+diff --git a/include/ui/GraphicBufferMapper.h b/include/ui/GraphicBufferMapper.h
+index 4ccc6fd..e52acd7 100644
+--- a/include/ui/GraphicBufferMapper.h
++++ b/include/ui/GraphicBufferMapper.h
+@@ -69,7 +69,14 @@ private:
+     std::unique_ptr<Gralloc1::Loader> mLoader;
+     std::unique_ptr<Gralloc1::Device> mDevice;
+ };
++#ifdef MTK_HARDWARE
++extern "C" {
+ 
++    status_t _ZN7android19GraphicBufferMapper4lockEPK13native_handleiRKNS_4RectEPPv(
++            buffer_handle_t handle, int usage, const Rect& bounds, void** vaddr);
++
++}
++#endif
+ // ---------------------------------------------------------------------------
+ 
+ }; // namespace android
+diff --git a/libs/gui/SensorManager.cpp b/libs/gui/SensorManager.cpp
+index 225bfa8..9a36208 100644
+--- a/libs/gui/SensorManager.cpp
++++ b/libs/gui/SensorManager.cpp
+@@ -39,6 +39,32 @@ namespace android {
+ android::Mutex android::SensorManager::sLock;
+ std::map<String16, SensorManager*> android::SensorManager::sPackageInstances;
+ 
++#ifdef MTK_HARDWARE
++
++static const String8 packageName8("");
++
++
++// be compatible with MTK Lollipop blobs
++extern "C" {
++    android::Mutex _ZN7android9SingletonINS_13SensorManagerEE5sLockE;
++    SensorManager *_ZN7android9SingletonINS_13SensorManagerEE9sInstanceE = nullptr;
++}
++
++
++// compatible ctor
++SensorManager::SensorManager()
++    : mSensorList(0), mOpPackageName("")
++{
++    // okay we're not locked here, but it's not needed during construction
++    assertStateLocked();
++}
++
++
++sp<SensorEventQueue> SensorManager::createEventQueue() {
++  return createEventQueue(packageName8, 0);
++}
++#endif  // MTK_HARDWARE
++
+ SensorManager& SensorManager::getInstanceForPackage(const String16& packageName) {
+     Mutex::Autolock _l(sLock);
+     SensorManager* sensorManager;
+diff --git a/libs/ui/Android.mk b/libs/ui/Android.mk
+index 2b16365..34548c0 100644
+--- a/libs/ui/Android.mk
++++ b/libs/ui/Android.mk
+@@ -48,6 +48,16 @@ LOCAL_SRC_FILES := \
+ 	Region.cpp \
+ 	UiConfig.cpp
+ 
++ifeq ($(BOARD_HAS_MTK_HARDWARE),true)
++LOCAL_SRC_FILES += \
++	mediatek/Fence.cpp \
++	mediatek/IDumpTunnel.cpp \
++	mediatek/RefBaseDump.cpp
++
++# just make everything compile for now... cleanups later
++LOCAL_CPPFLAGS := -std=c++1y -Weverything
++endif
++
+ LOCAL_SHARED_LIBRARIES := \
+ 	libbinder \
+ 	libcutils \
+diff --git a/libs/ui/GraphicBufferMapper.cpp b/libs/ui/GraphicBufferMapper.cpp
+index bb86093..4ca82c6 100644
+--- a/libs/ui/GraphicBufferMapper.cpp
++++ b/libs/ui/GraphicBufferMapper.cpp
+@@ -91,6 +91,28 @@ static inline gralloc1_rect_t asGralloc1Rect(const Rect& rect) {
+     return outRect;
+ }
+ 
++#ifdef MTK_HARDWARE
++extern "C" {
++
++extern status_t _ZN7android19GraphicBufferMapper4lockEPK13native_handlejRKNS_4RectEPPv(buffer_handle_t, uint32_t, const Rect&, void**);
++extern status_t _ZN7android19GraphicBufferMapper9lockYCbCrEPK13native_handlejRKNS_4RectEP13android_ycbcr(buffer_handle_t, uint32_t, const Rect&, android_ycbcr *);
++
++
++status_t _ZN7android19GraphicBufferMapper4lockEPK13native_handleiRKNS_4RectEPPv(buffer_handle_t handle,
++        int usage, const Rect& bounds, void** vaddr)
++{
++    return _ZN7android19GraphicBufferMapper4lockEPK13native_handlejRKNS_4RectEPPv(handle, static_cast<uint32_t>(usage), bounds, vaddr);
++}
++
++
++status_t _ZN7android19GraphicBufferMapper9lockYCbCrEPK13native_handleiRKNS_4RectEP13android_ycbcr(buffer_handle_t handle,
++        int usage, const Rect& bounds, android_ycbcr *ycbcr)
++{
++    return _ZN7android19GraphicBufferMapper9lockYCbCrEPK13native_handlejRKNS_4RectEP13android_ycbcr(handle, static_cast<uint32_t>(usage), bounds, ycbcr);
++}
++}
++#endif
++
+ status_t GraphicBufferMapper::lock(buffer_handle_t handle, uint32_t usage,
+         const Rect& bounds, void** vaddr)
+ {

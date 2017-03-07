@@ -51,3 +51,5 @@ allow permission_check ccci_cfg_file:file create_file_perms;
 allow permission_check mdlog_data_file:dir { read search setattr open };
 allow permission_check mdlog_data_file:fifo_file setattr;
 allow permission_check mdlog_data_file:file setattr;
+
+allow permission_check persist_md_prop:file { read open getattr };

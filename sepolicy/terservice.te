@@ -35,6 +35,8 @@ allow terservice terservice_prop:property_service set;
 # ccci ioctl
 allow terservice ccci_device:chr_file { read write ioctl open };
 
+allow terservice persist_ril_prop:file { read open getattr };
+
 # ipc call
 binder_use(terservice) 
 binder_service(terservice) 

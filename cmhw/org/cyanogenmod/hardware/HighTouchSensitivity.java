@@ -23,7 +23,7 @@ import org.cyanogenmod.internal.util.FileUtils;
  */
 public class HighTouchSensitivity {
 
-    private static String GLOVE_PATH = "/sys/lenovo_tp_gestures/tpd_glove_status";
+    private static String GLOVE_PATH = "/sys/board_properties/tpd_glove_status";
 
     /**
      * Whether device supports high touch sensitivity.
