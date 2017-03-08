@@ -5,12 +5,12 @@
   * Tethering (Wifi, Bluetooth and USB)
   * Bluetooth
   * Sensors
+   * Audio(Only headphones)
 
 
 * Not working
   * RIL
   * GPS
-  * Audio(Only headphones)
   * Camera (photo, video recording)
   * Light indicator
 
