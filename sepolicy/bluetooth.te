@@ -22,3 +22,7 @@ allow bluetooth platform_app_tmpfs:file write;
 # Operation : Migration
 # Purpose: Allow bluetooth to access surfaceflinger
 allow bluetooth surfaceflinger:fifo_file { read write };
+
+allow bluetooth wmt_prop:file { read open getattr };
+allow bluetooth bt_prop:file { read open getattr };
+allow bluetooth persist_bt_prop:file { read open getattr };

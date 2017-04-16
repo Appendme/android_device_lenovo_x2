@@ -18,18 +18,15 @@ endif
 TARGET_SCREEN_HEIGHT := 1920
 TARGET_SCREEN_WIDTH := 1080
 
-PRODUCT_PACKAGES += \
-    libxlog
-
 PRODUCT_LOCALES := ru_RU
 
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     persist.sys.timezone=Asia/Krasnoyarsk
 
-# various MTK ABI fixes
-# this is the approach of the cm-13.0 sprout port
 PRODUCT_PACKAGES += \
-    libmtkabi
+	libmtkabi \
+	libxlog \
+	libccci_util
 
 # Display
 PRODUCT_PACKAGES += \
@@ -39,7 +36,6 @@ PRODUCT_PACKAGES += \
     libgui_ext \
     guiext-server \
     librrc \
-    libmtk_drvb \
 
 # Power
 PRODUCT_PACKAGES += \
@@ -53,6 +49,11 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     Snap \
     libnvramagentclient \
+
+PRODUCT_PACKAGES += \
+    FMRadio \
+    libfmjni
+
 
 # Use CM Gello browser
 #PRODUCT_PACKAGES += \
@@ -120,6 +121,7 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     gps.mt6595 \
     mtk_agpsd \
+    YGPS
 
 # Keylayout
 PRODUCT_COPY_FILES += \
@@ -182,29 +184,19 @@ PRODUCT_COPY_FILES += \
 
 # USB
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
-    persist.sys.usb.config=mtp \
-    ro.hardware=mt6595 \
+	persist.sys.usb.config=mtp \
+	ro.hardware=mt6595 \
+	ro.adb.secure=0 \
+	ro.secure=0 \
+	ro.allow.mock.location=0 \
+	ro.debuggable=1 \
+	dalvik.vm.dex2oat-Xms=64m \
+	dalvik.vm.dex2oat-Xmx=512m \
+	dalvik.vm.image-dex2oat-Xms=64m \
+	dalvik.vm.image-dex2oat-Xmx=64m \
 
 PRODUCT_PACKAGES += \
     Torch
-
-PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
-ro.adb.secure=0 \
-ro.secure=0 \
-ro.allow.mock.location=0 \
-ro.debuggable=1 \
-dalvik.vm.dex2oat-Xms=64m \
-dalvik.vm.dex2oat-Xmx=512m \
-dalvik.vm.image-dex2oat-Xms=64m \
-dalvik.vm.image-dex2oat-Xmx=64m \
-
-ADDITIONAL_DEFAULT_PROPERTIES += \
-	ro.secure=0 \
-	ro.allow.mock.location=1 \
-	ro.debuggable=1 \
-	ro.adb.secure=0 \
-	persist.service.acm.enable=0 \
-	persist.sys.usb.config=mtp,adb
 
 # Screen density
 PRODUCT_AAPT_CONFIG := normal

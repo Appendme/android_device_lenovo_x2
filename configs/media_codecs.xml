@@ -83,10 +83,10 @@ Only the three quirks included above are recognized at this point:
             <Quirk name="supports-multiple-frames-per-input-buffer" />
         </MediaCodec>
         <MediaCodec name="OMX.google.opus.decoder" type="audio/opus">
-  			<Limit name="channel-count" max="8" /> 
-  			<Limit name="sample-rate" ranges="8000-96000" /> 
-  			<Limit name="bitrate" range="1-10000000" /> 
-  		</MediaCodec>
+            <Limit name="channel-count" max="8" /> 
+            <Limit name="sample-rate" ranges="8000-96000" /> 
+            <Limit name="bitrate" range="1-10000000" /> 
+        </MediaCodec>
         <MediaCodec name="OMX.MTK.AUDIO.DECODER.ADPCM.MS" type="audio/x-adpcm-ms" />
         <MediaCodec name="OMX.MTK.AUDIO.DECODER.ADPCM.DVI" type="audio/x-adpcm-dvi-ima" />
         <MediaCodec name="OMX.MTK.AUDIO.DECODER.GSM" type="audio/gsm" />
@@ -98,8 +98,8 @@ Only the three quirks included above are recognized at this point:
             <Quirk name="decoder-lies-about-number-of-channels" />
         </MediaCodec>
         <MediaCodec name="OMX.MTK.AUDIO.DECODER.FLAC" type="audio/flac" />
-        <MediaCodec name="OMX.MTK.AUDIO.DECODER.WMA" type="audio/x-ms-wma" />
-        <MediaCodec name="OMX.MTK.AUDIO.DECODER.WMAPRO" type="audio/x-ms-wmapro" />
+        <!--MediaCodec name="OMX.MTK.AUDIO.DECODER.WMA" type="audio/x-ms-wma" />
+        <MediaCodec name="OMX.MTK.AUDIO.DECODER.WMAPRO" type="audio/x-ms-wmapro" /!-->
         <MediaCodec name="OMX.MTK.AUDIO.DECODER.APE" type="audio/ape" >
             <Quirk name="decoder-lies-about-number-of-channels" />
             <Quirk name="supports-multiple-frames-per-input-buffer" />
@@ -170,6 +170,18 @@ Only the three quirks included above are recognized at this point:
 
         <MediaCodec name="OMX.google.vp8.decoder" type="video/x-vnd.on2.vp8" />
         <MediaCodec name="OMX.google.h264.decoder" type="video/avc" />
+        <!-- DOLBY_UDC -->
+        <MediaCodec name="OMX.dolby.ac3.decoder" >
+            <Type name="audio/ac3" />
+            <Quirk name="needs-flush-before-disable" />
+            <Quirk name="requires-flush-complete-emulation" />
+        </MediaCodec>
+        <MediaCodec name="OMX.dolby.ec3.decoder" >
+            <Type name="audio/eac3" />
+            <Quirk name="needs-flush-before-disable" />
+            <Quirk name="requires-flush-complete-emulation" />
+        </MediaCodec>
+        <!-- DOLBY_UDC END -->
 
     </Decoders>
 

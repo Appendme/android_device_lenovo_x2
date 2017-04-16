@@ -53,9 +53,6 @@ allow ccci_mdinit { ctl_ccci_rpcd_prop ctl_ccci2_rpcd_prop }:property_service se
 allow ccci_mdinit ccci_device:chr_file rw_file_perms;
 allow ccci_mdinit ccci_monitor_device:chr_file rw_file_perms;
 
-# TODO: Do not allow write access to all of /sys
-allow ccci_mdinit sysfs:file write;
-
 allow ccci_mdinit nvram_data_file:dir rw_dir_perms;
 allow ccci_mdinit nvram_data_file:file create_file_perms;
 allow ccci_mdinit nvram_data_file:lnk_file read;
@@ -92,8 +89,11 @@ allow ccci_mdinit custom_file:file { open read getattr };
 allow ccci_mdinit mtk_tele_prop:property_service set;
 
 allow ccci_mdinit proc:file { r_file_perms ioctl };
-allow ccci_mdinit sysfs:file r_file_perms;
+allow ccci_mdinit sysfs:file rw_file_perms;
 allow ccci_mdinit persist_ril_prop:file { r_file_perms getattr };
+allow ccci_mdinit mediatek_prop:file { read open getattr ioctl };
+allow ccci_mdinit mtk_md_prop:file { read open getattr ioctl };
+allow ccci_mdinit block_device:blk_file r_file_perms;
 
 # Date WK15.13
 # Operation : Migration

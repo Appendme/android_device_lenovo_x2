@@ -51,8 +51,10 @@ allow atcid self:rawip_socket getopt;
 allow atcid self:rawip_socket setopt;
 allow atcid rild_atci_c2k_socket:sock_file write;
 allow atcid viarild:unix_stream_socket connectto;
+allow atcid sysfs:file { open read };
 allow atci_service gpu_device:chr_file { read write open ioctl getattr };
 #allow atci_service CAM_CAL_DRV1_device:chr_file { read write open };
 allow atci_service pq:binder call;
 
 allow atci_service sysfs:file r_file_perms;
+

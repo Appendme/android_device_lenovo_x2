@@ -21,3 +21,5 @@ init_daemon_domain(BGW)
 allow BGW ccci_device:chr_file { read write open };
 allow BGW self:netlink_socket { read bind create write };
 allow BGW stpwmt_device:chr_file { read write open };
+
+allow BGW kernel:system module_request;

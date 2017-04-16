@@ -29,3 +29,6 @@ allow md_ctrl eemcs_device:chr_file open;
 allow md_ctrl property_socket:sock_file write;
 allow md_ctrl init:unix_stream_socket connectto;
 allow md_ctrl vold_prop:property_service set;
+allow md_ctrl muxreport_exec:file getattr;
+allow md_ctrl persist_ril_prop:file { read open getattr };
+allow md_ctrl sysfs:file { read open };

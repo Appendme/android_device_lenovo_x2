@@ -2,17 +2,18 @@
 
 * Working
   * Wifi
+  * RIL
+  * GPS
   * Tethering (Wifi, Bluetooth and USB)
   * Bluetooth
   * Sensors
+  * Light indicator
 
 
 * Not working
-  * RIL
-  * GPS
-  * Audio(Only headphones)
+  * Audio
   * Camera (photo, video recording)
-  * Light indicator
+  * MTK OMX CODECS
 
 =============================
 

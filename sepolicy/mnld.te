@@ -56,11 +56,12 @@ allow mnld mtd_device:dir search;
 allow mnld platform_app:unix_stream_socket connectto;
 allow mnld system_app:unix_stream_socket connectto;
 allow mnld apk_data_file:dir { write add_name };
-allow mnld apk_data_file:file { write create };
-allow mnld gps_data_file:dir rw_dir_perms;
+allow mnld apk_data_file:file { write create read open getattr };
+allow mnld gps_data_file:dir { rw_dir_perms search};
 allow mnld gps_data_file:file create_file_perms;
 
 allow mnld wmt_prop:file { r_file_perms getattr };
+allow mnld system_data_file:file { write getattr };
 
 # Date : WK15.30
 # Operation : Migration

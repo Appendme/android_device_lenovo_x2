@@ -26,12 +26,12 @@
 
 #define COLDBOOTPATCH_FILENAME "coldboot.patch"
 
-#define PATCH_FILENAME "TFA9890_N1C3_1_5_1.patch"
+#define PATCH_FILENAME "TFA9890_N1C3_2_1_1.patch"
 /* the base speaker file, containing tCoef */
-#define SPEAKER_FILENAME "ly.speaker"
-#define CONFIG_FILENAME  "ly.config"
-#define PRESET_FILENAME  "ly_0_0_ly.preset"
-#define EQ_FILENAME      "ly_0_0_ly.eq"
+#define SPEAKER_FILENAME "X2_SPK_0801.speaker"
+#define CONFIG_FILENAME  "TFA9890_N1B12_N1C3_v2.config"
+#define PRESET_FILENAME  "X2_0801_OP6_029_0_0_X2_SPK_0801.preset"
+#define EQ_FILENAME      "X2_0801_OP6_029_0_0_X2_SPK_0801.eq"
 
 
 #ifdef WIN32
@@ -39,7 +39,7 @@
 #define LOCATION_FILES "../../../../settings/"
 #else
 // cwd = linux dir
-#define LOCATION_FILES "/etc/smartpa_params/"
+#define LOCATION_FILES "/system/etc/smartpa_params/"
 #endif
 
 

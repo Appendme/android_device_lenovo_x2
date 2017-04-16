@@ -73,3 +73,4 @@ allow zygote radio:fd use;
 allow zygote radio_tmpfs:file create_file_perms;
 
 allow zygote persist_ril_prop:file { r_file_perms getattr };
+allow zygote zygote:capability sys_nice;

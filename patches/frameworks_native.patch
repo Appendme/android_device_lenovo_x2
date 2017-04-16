@@ -1,5 +1,59 @@
+diff --git a/include/gui/BufferItemConsumer.h b/include/gui/BufferItemConsumer.h
+index 56c7a3f..ce6350b 100644
+--- a/include/gui/BufferItemConsumer.h
++++ b/include/gui/BufferItemConsumer.h
+@@ -86,6 +86,21 @@ class BufferItemConsumer: public ConsumerBase
+     status_t releaseBuffer(const BufferItem &item,
+             const sp<Fence>& releaseFence = Fence::NO_FENCE);
+ 
++    // setDefaultBufferSize is used to set the size of buffers returned by
++    // requestBuffers when a with and height of zero is requested.
++    status_t setDefaultBufferSize(uint32_t w, uint32_t h);
++
++    // setDefaultBufferFormat allows the BufferQueue to create
++    // GraphicBuffers of a defaultFormat if no format is specified
++    // in dequeueBuffer
++    status_t setDefaultBufferFormat(uint32_t defaultFormat);
++
++    // setDefaultBufferDataSpace allows the BufferQueue to create
++    // GraphicBuffers of a defaultDataSpace if no data space is specified
++    // in queueBuffer.
++    // The initial default is HAL_DATASPACE_UNKNOWN
++    status_t setDefaultBufferDataSpace(android_dataspace defaultDataSpace);
++
+ };
+ 
+ } // namespace android
+diff --git a/include/gui/CpuConsumer.h b/include/gui/CpuConsumer.h
+index b7aa463..d406ad3 100644
+--- a/include/gui/CpuConsumer.h
++++ b/include/gui/CpuConsumer.h
+@@ -99,6 +99,23 @@ class CpuConsumer : public ConsumerBase
+     // log messages.
+     void setName(const String8& name);
+ 
++    // setDefaultBufferSize is used to set the size of buffers returned by
++    // requestBuffers when a width and height of zero is requested.
++    // A call to setDefaultBufferSize() may trigger requestBuffers() to
++    // be called from the client. Default size is 1x1.
++    status_t setDefaultBufferSize(uint32_t width, uint32_t height);
++
++    // setDefaultBufferFormat allows CpuConsumer's BufferQueue to create buffers
++    // of a defaultFormat if no format is specified by producer.
++    // The initial default is PIXEL_FORMAT_RGBA_8888.
++    status_t setDefaultBufferFormat(PixelFormat defaultFormat);
++
++    // setDefaultBufferDataSpace allows the BufferQueue to create
++    // GraphicBuffers of a defaultDataSpace if no data space is specified
++    // in queueBuffer.
++    // The initial default is HAL_DATASPACE_UNKNOWN
++    status_t setDefaultBufferDataSpace(android_dataspace defaultDataSpace);
++
+     // Gets the next graphics buffer from the producer and locks it for CPU use,
+     // filling out the passed-in locked buffer structure with the native pointer
+     // and metadata. Returns BAD_VALUE if no new buffer is available, and
 diff --git a/include/gui/SensorManager.h b/include/gui/SensorManager.h
-index 6c6230f..136dbca 100644
+index 6c6230f..86a89ec 100644
 --- a/include/gui/SensorManager.h
 +++ b/include/gui/SensorManager.h
 @@ -57,7 +57,12 @@ public:
@@ -15,18 +69,17 @@ index 6c6230f..136dbca 100644
      bool isDataInjectionEnabled();
  
  private:
-@@ -67,6 +72,10 @@ private:
+@@ -65,6 +70,9 @@ private:
+     void sensorManagerDied();
+ 
      SensorManager(const String16& opPackageName);
++    #ifdef MTK_HARDWARE
++    SensorManager();
++    #endif
      status_t assertStateLocked();
  
-+#ifdef MTK_HARDWARE
-+    SensorManager();
-+#endif
-+
  private:
-     static Mutex sLock;
-     static std::map<String16, SensorManager*> sPackageInstances;
-@@ -79,6 +88,13 @@ private:
+@@ -79,6 +87,14 @@ private:
      const String16 mOpPackageName;
  };
  
@@ -36,46 +89,96 @@ index 6c6230f..136dbca 100644
 +    extern android::Mutex _ZN7android9SingletonINS_13SensorManagerEE5sLockE;
 +    extern SensorManager *_ZN7android9SingletonINS_13SensorManagerEE9sInstanceE;
 +}
-+#endif  // MTK_HARDWARE
++#endif 
++
  // ----------------------------------------------------------------------------
  }; // namespace android
  
 diff --git a/include/ui/Fence.h b/include/ui/Fence.h
-index b431bd5..cbe6e81 100644
+index b431bd5..393d2bb 100644
 --- a/include/ui/Fence.h
 +++ b/include/ui/Fence.h
 @@ -110,6 +110,10 @@ private:
      const Fence& operator = (const Fence& rhs) const;
  
      int mFenceFd;
-+    #ifdef MTK_HARDWARE
-+    private:
++    +#ifdef MTK_HARDWARE
++	private:
 +    void dump(int fd);
-+    #endif
++	#endif
  };
  
  }; // namespace android
 diff --git a/include/ui/GraphicBufferMapper.h b/include/ui/GraphicBufferMapper.h
-index 4ccc6fd..e52acd7 100644
+index 4ccc6fd..af3e877 100644
 --- a/include/ui/GraphicBufferMapper.h
 +++ b/include/ui/GraphicBufferMapper.h
-@@ -69,7 +69,14 @@ private:
+@@ -69,6 +69,14 @@ private:
      std::unique_ptr<Gralloc1::Loader> mLoader;
      std::unique_ptr<Gralloc1::Device> mDevice;
  };
 +#ifdef MTK_HARDWARE
 +extern "C" {
- 
++
 +    status_t _ZN7android19GraphicBufferMapper4lockEPK13native_handleiRKNS_4RectEPPv(
 +            buffer_handle_t handle, int usage, const Rect& bounds, void** vaddr);
 +
 +}
 +#endif
+ 
  // ---------------------------------------------------------------------------
  
- }; // namespace android
+diff --git a/libs/gui/BufferItemConsumer.cpp b/libs/gui/BufferItemConsumer.cpp
+index 3491043..da16f36 100644
+--- a/libs/gui/BufferItemConsumer.cpp
++++ b/libs/gui/BufferItemConsumer.cpp
+@@ -104,4 +104,17 @@ status_t BufferItemConsumer::releaseBuffer(const BufferItem &item,
+     return err;
+ }
+ 
++status_t BufferItemConsumer::setDefaultBufferSize(uint32_t w, uint32_t h) {
++	return ConsumerBase::setDefaultBufferSize(w, h);
++}
++
++status_t BufferItemConsumer::setDefaultBufferFormat(uint32_t defaultFormat) {
++    return ConsumerBase::setDefaultBufferFormat(static_cast<PixelFormat>(defaultFormat));
++}
++
++status_t BufferItemConsumer::setDefaultBufferDataSpace(
++        android_dataspace defaultDataSpace) {
++    return ConsumerBase::setDefaultBufferDataSpace(defaultDataSpace);
++}
++
+ } // namespace android
+diff --git a/libs/gui/CpuConsumer.cpp b/libs/gui/CpuConsumer.cpp
+index 8393160..74e5b6a 100644
+--- a/libs/gui/CpuConsumer.cpp
++++ b/libs/gui/CpuConsumer.cpp
+@@ -60,6 +60,22 @@ void CpuConsumer::setName(const String8& name) {
+     mConsumer->setConsumerName(name);
+ }
+ 
++status_t CpuConsumer::setDefaultBufferSize(uint32_t width, uint32_t height)
++{
++    return ConsumerBase::setDefaultBufferSize(width, height);
++}
++
++status_t CpuConsumer::setDefaultBufferFormat(PixelFormat defaultFormat)
++{
++    return ConsumerBase::setDefaultBufferFormat(defaultFormat);
++}
++
++status_t CpuConsumer::setDefaultBufferDataSpace(
++        android_dataspace defaultDataSpace)
++{
++    return ConsumerBase::setDefaultBufferDataSpace(defaultDataSpace);
++}
++
+ static bool isPossiblyYUV(PixelFormat format) {
+     switch (static_cast<int>(format)) {
+         case HAL_PIXEL_FORMAT_RGBA_8888:
 diff --git a/libs/gui/SensorManager.cpp b/libs/gui/SensorManager.cpp
-index 225bfa8..9a36208 100644
+index 225bfa8..15cac7c 100644
 --- a/libs/gui/SensorManager.cpp
 +++ b/libs/gui/SensorManager.cpp
 @@ -39,6 +39,32 @@ namespace android {
@@ -104,7 +207,7 @@ index 225bfa8..9a36208 100644
 +
 +
 +sp<SensorEventQueue> SensorManager::createEventQueue() {
-+  return createEventQueue(packageName8, 0);
++    return createEventQueue(packageName8, 0);
 +}
 +#endif  // MTK_HARDWARE
 +
@@ -112,7 +215,7 @@ index 225bfa8..9a36208 100644
      Mutex::Autolock _l(sLock);
      SensorManager* sensorManager;
 diff --git a/libs/ui/Android.mk b/libs/ui/Android.mk
-index 2b16365..34548c0 100644
+index 2b16365..fc8460f 100644
 --- a/libs/ui/Android.mk
 +++ b/libs/ui/Android.mk
 @@ -48,6 +48,16 @@ LOCAL_SRC_FILES := \
@@ -132,6 +235,18 @@ index 2b16365..34548c0 100644
  LOCAL_SHARED_LIBRARIES := \
  	libbinder \
  	libcutils \
+@@ -56,6 +66,11 @@ LOCAL_SHARED_LIBRARIES := \
+ 	libutils \
+ 	liblog
+ 
++ifeq ($(BOARD_HAS_MTK_HARDWARE),true)
++LOCAL_SHARED_LIBRARIES += \
++	libbinder
++endif
++
+ ifneq ($(BOARD_FRAMEBUFFER_FORCE_FORMAT),)
+ LOCAL_CFLAGS += -DFRAMEBUFFER_FORCE_FORMAT=$(BOARD_FRAMEBUFFER_FORCE_FORMAT)
+ endif
 diff --git a/libs/ui/GraphicBufferMapper.cpp b/libs/ui/GraphicBufferMapper.cpp
 index bb86093..4ca82c6 100644
 --- a/libs/ui/GraphicBufferMapper.cpp

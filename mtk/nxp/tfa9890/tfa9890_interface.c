@@ -20,7 +20,9 @@
 #include <utils/Log.h>
 #define LOG_TAG "TFA9890"
 #include "tfa9890_cust.h"
+#include "include/export.h"
 
+//#define EXPORT_SYMBOL(sym) extern __EXPORT_SYMBOL(sym, "")
 //#define SPDIF_AUDIO
 //#define USB_AUDIO
 
@@ -121,12 +123,12 @@ Tfa98xx_Error_t tfaRun_PowerCycleCF(Tfa98xx_handle_t handle){
 
 	err = Tfa98xx_Powerdown(handle, 1);
         if(err != Tfa98xx_Error_Ok) {
-            ALOGE("FUNC: %s, LINE: %s", __func__, __LINE__);
+            ALOGE("FUNC: %s, LINE: %d", __func__, __LINE__);
             return err;
         }
 	err = Tfa98xx_Powerdown(handle, 0);
         if(err != Tfa98xx_Error_Ok) {
-            ALOGE("FUNC: %s, LINE: %s", __func__, __LINE__);
+            ALOGE("FUNC: %s, LINE: %d", __func__, __LINE__);
             return err;
         }
 
@@ -165,21 +167,21 @@ static void muteAmplifier(Tfa98xx_handle_t handle)
     /* signal the TFA98xx to mute plop free and turn off the amplifier */
     err = Tfa98xx_SetMute(handle, Tfa98xx_Mute_Amplifier);
     if(err != Tfa98xx_Error_Ok) {
-        ALOGE("FUNC: %s, LINE: %s", __func__, __LINE__);
-        return err;
+        ALOGE("FUNC: %s, LINE: %d", __func__, __LINE__);
+        //return err;
     }
 
     /* now wait for the amplifier to turn off */
     err = Tfa98xx_ReadRegister16(handle, TFA98XX_STATUSREG, &status);
     if(err != Tfa98xx_Error_Ok) {
-        ALOGE("FUNC: %s, LINE: %s", __func__, __LINE__);
-        return err;
+        ALOGE("FUNC: %s, LINE: %d", __func__, __LINE__);
+        //return err;
     }
 
     do {
         err = Tfa98xx_ReadRegister16(handle, TFA98XX_STATUSREG, &status);
         if (err != Tfa98xx_Error_Ok) {
-            ALOGE("FUNC: %s, LINE: %s", __func__, __LINE__);
+            ALOGE("FUNC: %s, LINE: %d", __func__, __LINE__);
             break;
         }
         if ( (status & TFA98XX_STATUSREG_SWS_MSK) == TFA98XX_STATUSREG_SWS_MSK) {
@@ -199,6 +201,7 @@ static void loadSpeakerFile(const char* fileName, Tfa98xx_SpeakerParameters_t sp
     ALOGD("using speaker %s\n", fileName);
 
     f=fopen(fileName, "rb");
+    ALOGD("APPEND: f=%d",f);
     if (NULL == f) {
         ALOGE("%s: %u: Not exist %s\n", __func__, __LINE__, fileName);
         return;
@@ -217,7 +220,7 @@ static int dspSupporttCoef(Tfa98xx_handle_t handle)
 
     err = Tfa98xx_DspSupporttCoef(handle, &bSupporttCoef);
     if(err != Tfa98xx_Error_Ok) {
-        ALOGE("FUNC: %s, LINE: %s", __func__, __LINE__);
+        ALOGE("FUNC: %s, LINE: %d", __func__, __LINE__);
         return err;
     }
 
@@ -870,23 +873,24 @@ static int checkMTPEX(Tfa98xx_handle_t handle)
 
 int tfa9890_deinit(void)
 {
-	 Tfa98xx_handle_t *handle = g_handle;
+	 Tfa98xx_handle_t *handle = &g_handle;
 	 Tfa98xx_Error_t err = Tfa98xx_Error_Ok;
    if(first)
    {
-	 	  err = Tfa98xx_SetMute(handle, Tfa98xx_Mute_Amplifier);
+	 	  err = Tfa98xx_SetMute(*handle, Tfa98xx_Mute_Amplifier);
 	      assert(err == Tfa98xx_Error_Ok);
 
-	      err = Tfa98xx_Powerdown(handle, 1);
+	      err = Tfa98xx_Powerdown(*handle, 1);
 	      assert(err == Tfa98xx_Error_Ok);
 
-	      err = Tfa98xx_Close(handle);
+	      err = Tfa98xx_Close(*handle);
 	      assert(err == Tfa98xx_Error_Ok);
 	      first = 0;
 	 }
 
 	 return 1;
 }
+EXPORT_SYMBOL(tfa9890_deinit);
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -993,12 +997,14 @@ int tfa9890_init()
     ALOGD("%s -",__func__);
     return 1;
 }
+EXPORT_SYMBOL(tfa9890_init);
 
 void tfa9890_set_bypass_dsp_incall(int bypass)
 {
     TFA_LOGD("bypass: %d", bypass);
     bypass_dsp_incall = bypass == 0 ? 0 : 1;
 }
+EXPORT_SYMBOL(tfa9890_set_bypass_dsp_incall);
 
 static int get_bypass_dsp_incall()
 {
@@ -1052,6 +1058,7 @@ void tfa9890_SpeakerOn(void)
 
     TFA_LOGD("-");
 }
+EXPORT_SYMBOL(tfa9890_SpeakerOn);
 
 void tfa9890_SpeakerOff(void)
 {
@@ -1075,6 +1082,8 @@ void tfa9890_SpeakerOff(void)
 
     TFA_LOGD("-");
 }
+EXPORT_SYMBOL(tfa9890_SpeakerOff);
+
 //set samplerate at tfa9890 powerdown
 void tfa9890_setSamplerate(int samplerate)
 {
@@ -1095,6 +1104,7 @@ void tfa9890_setSamplerate(int samplerate)
     }
     ALOGD("%s -",__func__);
 }
+EXPORT_SYMBOL(tfa9890_setSamplerate);
 
 void tfa9890_EchoReferenceConfigure(int config)
 {
@@ -1113,24 +1123,18 @@ void tfa9890_EchoReferenceConfigure(int config)
     }
     ALOGD("%s -, flag= %d",__func__,config);
 }
+EXPORT_SYMBOL(tfa9890_EchoReferenceConfigure);
+
 int tfa9890_check_tfaopen(void)
 {
    return first;
 }
+EXPORT_SYMBOL(tfa9890_check_tfaopen);
 
 void tfa9890_reset(void)
 {
     first = 0;
 }
-
-EXPORT_SYMBOL(tfa9890_init);
-EXPORT_SYMBOL(tfa9890_deinit);
 EXPORT_SYMBOL(tfa9890_reset);
-EXPORT_SYMBOL(tfa9890_eqset);
-EXPORT_SYMBOL(tfa9890_SpeakerOff);
-EXPORT_SYMBOL(tfa9890_SpeakerOn);
-EXPORT_SYMBOL(tfa9890_setSamplerate);
-EXPORT_SYMBOL(tfa9890_set_bypass_dsp_incall);
-EXPORT_SYMBOL(tfa9890_EchoReferenceConfigure);
-EXPORT_SYMBOL(tfa9890_check_tfaopen);
 
+//EXPORT_SYMBOL(tfa9890_eqset);

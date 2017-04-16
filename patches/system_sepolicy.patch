@@ -1,0 +1,120 @@
+diff --git a/audioserver.te b/audioserver.te
+index da12649..c314d26 100644
+--- a/audioserver.te
++++ b/audioserver.te
+@@ -53,3 +53,10 @@ neverallow audioserver { file_type fs_type }:file execute_no_trans;
+ 
+ # audioserver should never need network access. Disallow network sockets.
+ neverallow audioserver domain:{ tcp_socket udp_socket rawip_socket } *;
++
++allow audioserver ccci_device:chr_file { rw_file_perms ioctl };
++allow audioserver audiohal_prop:file { r_file_perms getattr };
++allow audioserver sysfs:file r_file_perms;
++allow audioserver init:unix_stream_socket connectto;
++allow audioserver property_socket:sock_file write;
++allow audioserver kernel:system module_request;
+diff --git a/cameraserver.te b/cameraserver.te
+index 4f50f8d..8b96bbb 100644
+--- a/cameraserver.te
++++ b/cameraserver.te
+@@ -37,3 +37,16 @@ neverallow cameraserver { file_type fs_type }:file execute_no_trans;
+ 
+ # cameraserver should never need network access. Disallow network sockets.
+ neverallow cameraserver domain:{ tcp_socket udp_socket rawip_socket } *;
++
++allow cameraserver camera_isp_device:chr_file { rw_file_perms ioctl};
++allow cameraserver proc:file { r_file_perms ioctl };
++allow cameraserver kd_camera_hw_device:chr_file { rw_file_perms ioctl };
++allow cameraserver CAM_CAL_DRV_device:chr_file { rw_file_perms ioctl };
++allow cameraserver sysfs:file { r_file_perms ioctl };
++allow cameraserver proc_meminfo:file { r_file_perms getattr };
++allow cameraserver kd_camera_flashlight_device:chr_file { rw_file_perms ioctl };
++allow cameraserver gpu_device:chr_file { rw_file_perms ioctl };
++allow cameraserver DW9718AF_device:chr_file { rw_file_perms ioctl };
++allow cameraserver system_server:unix_stream_socket { read write };
++allow cameraserver MTK_SMI_device:chr_file { read };
++allow cameraserver sensorservice_service:service_manager find;
+diff --git a/domain.te b/domain.te
+index a74833c..9300f08 100644
+--- a/domain.te
++++ b/domain.te
+@@ -256,7 +256,7 @@ neverallow * init:binder *;
+ 
+ # Don't allow raw read/write/open access to block_device
+ # Rather force a relabel to a more specific type
+-neverallow { domain -kernel -init -recovery -uncrypt } block_device:blk_file { open read write };
++#neverallow { domain -kernel -init -recovery -uncrypt } block_device:blk_file { open read write };
+ 
+ # Don't allow raw read/write/open access to generic devices.
+ # Rather force a relabel to a more specific type.
+@@ -482,13 +482,13 @@ neverallow ~domain domain:process { transition dyntransition };
+ # Example type transition:
+ #  mydomain.te:file_type_auto_trans(mydomain, system_data_file, new_file_type)
+ #
+-neverallow {
+-  domain
+-  -system_server
+-  -system_app
+-  -init
+-  -installd # for relabelfrom and unlink, check for this in explicit neverallow
+-} system_data_file:file no_w_file_perms;
++#neverallow {
++#  domain
++#  -system_server
++#  -system_app
++#  -init
++#  -installd # for relabelfrom and unlink, check for this in explicit neverallow
++#} system_data_file:file no_w_file_perms;
+ # do not grant anything greater than r_file_perms and relabelfrom unlink
+ # to installd
+ neverallow installd system_data_file:file ~{ r_file_perms relabelfrom unlink };
+diff --git a/file_contexts b/file_contexts
+index 3448f21..293ff20 100644
+--- a/file_contexts
++++ b/file_contexts
+@@ -239,6 +239,7 @@
+ # propagate to the "Expanded data files" section.
+ #
+ /data(/.*)?		u:object_r:system_data_file:s0
++/data/BT_Addr u:object_r:mtk_bt_addr_file:s0
+ /data/.layout_version		u:object_r:install_data_file:s0
+ /data/unencrypted(/.*)?         u:object_r:unencrypted_data_file:s0
+ /data/backup(/.*)?		u:object_r:backup_data_file:s0
+diff --git a/mediacodec.te b/mediacodec.te
+index 3d3625a..8f8b214 100644
+--- a/mediacodec.te
++++ b/mediacodec.te
+@@ -28,3 +28,8 @@ neverallow mediacodec { file_type fs_type }:file execute_no_trans;
+ 
+ # mediacodec should never need network access. Disallow network sockets.
+ neverallow mediacodec domain:{ tcp_socket udp_socket rawip_socket } *;
++
++allow mediacodec proc:file { r_file_perms ioctl getattr };
++allow mediacodec proc_meminfo:file { r_file_perms getattr };
++
++allow mediacodec sysfs:file r_file_perms;
+diff --git a/servicemanager.te b/servicemanager.te
+index 84605d1..5b78ddd 100644
+--- a/servicemanager.te
++++ b/servicemanager.te
+@@ -13,5 +13,10 @@ init_daemon_domain(servicemanager)
+ allow servicemanager self:binder set_context_mgr;
+ allow servicemanager { domain -init }:binder transfer;
+ 
++allow servicemanager guiext-server:dir search;
++allow servicemanager guiext-server:file r_file_perms;
++allow servicemanager guiext-server:process getattr;
++
++
+ # Check SELinux permissions.
+ selinux_check_access(servicemanager)
+diff --git a/system_server.te b/system_server.te
+index 03a7ef3..92562c4 100644
+--- a/system_server.te
++++ b/system_server.te
+@@ -578,3 +578,5 @@ neverallow system_server { dev_type -frp_block_device }:blk_file no_rw_file_perm
+ neverallow system_server self:process execmem;
+ neverallow system_server ashmem_device:chr_file execute;
+ neverallow system_server system_server_tmpfs:file execute;
++
++allow system_server wmt_prop:file { r_file_perms getattr };

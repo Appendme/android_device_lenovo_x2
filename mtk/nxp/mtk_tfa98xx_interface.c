@@ -1,4 +1,3 @@
-
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
@@ -17,7 +16,9 @@
 #else
 #include <unistd.h>
 #endif
-int MTK_Tfa98xx_Check_TfaOpen(void);
+
+#include "include/export.h"
+//#define EXPORT_SYMBOL(sym) extern __EXPORT_SYMBOL(sym, "")
 
 int MTK_Tfa98xx_Check_TfaOpen(void)
 {
@@ -28,6 +29,7 @@ int MTK_Tfa98xx_Check_TfaOpen(void)
 #endif
 
 }
+EXPORT_SYMBOL(MTK_Tfa98xx_Check_TfaOpen);
 
 int MTK_Tfa98xx_Init(void)
 {
@@ -41,6 +43,7 @@ int MTK_Tfa98xx_Init(void)
     ALOGD("Tfa98xx: -%s, res= %d",__func__,res);
     return res;
 }
+EXPORT_SYMBOL(MTK_Tfa98xx_Init);
 
 int MTK_Tfa98xx_Deinit(void)
 {
@@ -57,6 +60,7 @@ int MTK_Tfa98xx_Deinit(void)
     ALOGD("Tfa98xx: -%s, res= %d",__func__, res);
     return res;
 }
+EXPORT_SYMBOL(MTK_Tfa98xx_Deinit);
 
 void MTK_Tfa98xx_SpeakerOn(void)
 {
@@ -71,6 +75,7 @@ void MTK_Tfa98xx_SpeakerOn(void)
 #endif
     ALOGD("Tfa98xx: -%s, nxp_init_flag= %d",__func__,MTK_Tfa98xx_Check_TfaOpen());
 }
+EXPORT_SYMBOL(MTK_Tfa98xx_SpeakerOn);
 
 void MTK_Tfa98xx_SpeakerOff(void)
 {
@@ -86,6 +91,7 @@ void MTK_Tfa98xx_SpeakerOff(void)
 
     ALOGD("Tfa98xx: -%s",__func__);
 }
+EXPORT_SYMBOL(MTK_Tfa98xx_SpeakerOff);
 
 void MTK_Tfa98xx_SetSampleRate(int samplerate)
 {
@@ -99,6 +105,8 @@ void MTK_Tfa98xx_SetSampleRate(int samplerate)
 
     ALOGD("Tfa98xx: -%s",__func__);
 }
+EXPORT_SYMBOL(MTK_Tfa98xx_SetSampleRate);
+
 void MTK_Tfa98xx_SetBypassDspIncall(int bypass)
 {
     ALOGD("Tfa98xx: +%s, bypass= %d",__func__,bypass);
@@ -109,6 +117,7 @@ void MTK_Tfa98xx_SetBypassDspIncall(int bypass)
 #endif
     ALOGD("Tfa98xx: -%s",__func__);
 }
+EXPORT_SYMBOL(MTK_Tfa98xx_SetBypassDspIncall);
 
 void MTK_Tfa98xx_EchoReferenceConfigure(int config)
 {
@@ -123,6 +132,7 @@ void MTK_Tfa98xx_EchoReferenceConfigure(int config)
     }
     ALOGD("Tfa98xx: -%s,",__func__);
 }
+EXPORT_SYMBOL(MTK_Tfa98xx_EchoReferenceConfigure);
 
 void MTK_Tfa98xx_Reset()
 {
@@ -136,14 +146,4 @@ void MTK_Tfa98xx_Reset()
 #endif
     ALOGD("Tfa98xx: -%s,",__func__);
 }
-
-EXPORT_SYMBOL(MTK_Tfa98xx_Check_TfaOpen);
-EXPORT_SYMBOL(MTK_Tfa98xx_Init);
 EXPORT_SYMBOL(MTK_Tfa98xx_Reset);
-EXPORT_SYMBOL(MTK_Tfa98xx_Deinit);
-EXPORT_SYMBOL(MTK_Tfa98xx_SpeakerOn);
-EXPORT_SYMBOL(MTK_Tfa98xx_SpeakerOff);
-EXPORT_SYMBOL(MTK_Tfa98xx_SetSampleRate);
-EXPORT_SYMBOL(MTK_Tfa98xx_SetBypassDspIncall);
-EXPORT_SYMBOL(MTK_Tfa98xx_EchoReferenceConfigure);
-

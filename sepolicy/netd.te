@@ -126,3 +126,6 @@ allow netd wfca:udp_socket {read write setopt getopt};
 allow netd volte_ua:fd use;
 allow netd volte_ua:udp_socket {read write setopt getopt};
 
+allow netd wifi_data_file:dir { create setattr unlink };
+allow netd wifi_data_file:sock_file { create setattr unlink };
+allow netd dhcp_data_file:dir { setattr };

@@ -191,3 +191,4 @@ ro.mtk_bg_power_saving_support=1
 ro.mtk_bg_power_saving_ui=1
 wfd.dummy.enable=1
 persist.xen0n.mx_circle=0
+cm.updater.uri=https://raw.githubusercontent.com/Appendme/CMUpdater/master/api.json

@@ -450,6 +450,7 @@
 /system/bin/sn u:object_r:sn_exec:s0
 /system/bin/statusd u:object_r:statusd_exec:s0
 /system/bin/terservice u:object_r:terservice_exec:s0
+/system/bin/tfa9890 u:object_r:tfa9890_exec:s0
 /system/bin/thermald u:object_r:thermald_exec:s0
 /system/bin/thermal_manager u:object_r:thermal_manager_exec:s0
 /system/bin/thermalloadalgod u:object_r:thermalloadalgod_exec:s0  
@@ -549,7 +550,7 @@
 /dev/socket/rild-atci-c2k u:object_r:rild_atci_c2k_socket:s0
 
 # missing from bluetooth rules
-/data/BT_Addr u:object_r:xen0n_mtk_bt_addr_file:s0
+#/data/BT_Addr u:object_r:xen0n_mtk_bt_addr_file:s0
 
 # mtkbt
 /system/bin/mtkbt u:object_r:mtkbt_exec:s0
@@ -569,4 +570,5 @@
 #/dev/pipes u:object_r:immvibe_pipe:s0
 #/sys/devices/bus\.1/11010000\.I2C3/i2c-3/3-001e/ps_calibration u:object_r:meizu_ps_calibration_trigger:s0
 /dev/i2c-3 u:object_r:tfa9890_i2c_device:s0
+/system/etc/smartpa_params u:object_r:tfa9890_data_file:s0
 /dev/LC898212XD u:object_r:LC898212XD_device:s0

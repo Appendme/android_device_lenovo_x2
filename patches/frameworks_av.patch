@@ -1,0 +1,415 @@
+diff --git a/include/media/stagefright/ACodec.h b/include/media/stagefright/ACodec.h
+index d682632..10a3905 100644
+--- a/include/media/stagefright/ACodec.h
++++ b/include/media/stagefright/ACodec.h
+@@ -351,6 +351,9 @@ protected:
+ #ifdef USE_SAMSUNG_COLORFORMAT
+     void setNativeWindowColorFormat(OMX_COLOR_FORMATTYPE &eNativeColorFormat);
+ #endif
++#ifdef MTK_HARDWARE
++    void setHalWindowColorFormat(OMX_COLOR_FORMATTYPE &eHalColorFormat);
++#endif
+     status_t cancelBufferToNativeWindow(BufferInfo *info);
+     status_t freeOutputBuffersNotOwnedByComponent();
+     BufferInfo *dequeueBufferFromNativeWindow();
+diff --git a/include/media/stagefright/CameraSource.h b/include/media/stagefright/CameraSource.h
+index c2e75a6..f39688f 100644
+--- a/include/media/stagefright/CameraSource.h
++++ b/include/media/stagefright/CameraSource.h
+@@ -89,7 +89,7 @@ public:
+                                           Size videoSize,
+                                           int32_t frameRate,
+                                           const sp<IGraphicBufferProducer>& surface,
+-                                          bool storeMetaDataInVideoBuffers = true);
++                                          bool storeMetaDataInVideoBuffers = false);
+ 
+     virtual ~CameraSource();
+ 
+diff --git a/include/media/stagefright/ColorConverter.h b/include/media/stagefright/ColorConverter.h
+index 270c809..cf0cda5 100644
+--- a/include/media/stagefright/ColorConverter.h
++++ b/include/media/stagefright/ColorConverter.h
+@@ -82,6 +82,10 @@ private:
+     status_t convertTIYUV420PackedSemiPlanar(
+             const BitmapParams &src, const BitmapParams &dst);
+ 
++#ifdef MTK_HARDWARE
++    status_t convertYUVToRGBHW(const BitmapParams &src, const BitmapParams &dst);
++#endif
++
+     ColorConverter(const ColorConverter &);
+     ColorConverter &operator=(const ColorConverter &);
+ };
+diff --git a/media/libmediaplayerservice/StagefrightRecorder.cpp b/media/libmediaplayerservice/StagefrightRecorder.cpp
+index a6558ab..353bc02 100644
+--- a/media/libmediaplayerservice/StagefrightRecorder.cpp
++++ b/media/libmediaplayerservice/StagefrightRecorder.cpp
+@@ -1499,7 +1499,7 @@ status_t StagefrightRecorder::setupCameraSource(
+         *cameraSource = AVFactory::get()->CreateCameraSourceFromCamera(
+                 mCamera, mCameraProxy, mCameraId, mClientName, mClientUid, mClientPid,
+                 videoSize, mFrameRate,
+-                mPreviewSurface);
++                mPreviewSurface, false); // [*] Decker
+     }
+     AVUtils::get()->cacheCaptureBuffers(mCamera, mVideoEncoder);
+     mCamera.clear();
+diff --git a/media/libstagefright/ACodec.cpp b/media/libstagefright/ACodec.cpp
+index 92e2847..f19c15e 100644
+--- a/media/libstagefright/ACodec.cpp
++++ b/media/libstagefright/ACodec.cpp
+@@ -85,6 +85,16 @@
+ 
+ #include <stagefright/AVExtensions.h>
+ 
++#ifdef MTK_HARDWARE
++#include <media/stagefright/dpframework/DpBlitStream.h>
++
++#define HAL_PIXEL_FORMAT_NV12_BLK 0x7F000001
++#define HAL_PIXEL_FORMAT_I420 (0x32315659 + 0x10)
++
++const OMX_COLOR_FORMATTYPE OMX_MTK_COLOR_FormatYV12 = (OMX_COLOR_FORMATTYPE)0x7F000200;
++const OMX_COLOR_FORMATTYPE OMX_COLOR_FormatVendorMTKYUV = (OMX_COLOR_FORMATTYPE)0x7F000001;
++#endif
++
+ namespace android {
+ 
+ enum {
+@@ -1036,6 +1046,11 @@ status_t ACodec::setupNativeWindowSizeFormatAndUsage(
+     setNativeWindowColorFormat(eNativeColorFormat);
+ #endif
+ 
++#ifdef MTK_HARDWARE
++    OMX_COLOR_FORMATTYPE eHalColorFormat = def.format.video.eColorFormat;
++    setHalWindowColorFormat(eHalColorFormat);
++#endif
++
+     ALOGV("gralloc usage: %#x(OMX) => %#x(ACodec)", omxUsage, usage);
+     err = setNativeWindowSizeFormatAndUsage(
+             nativeWindow,
+@@ -1043,6 +1058,8 @@ status_t ACodec::setupNativeWindowSizeFormatAndUsage(
+             def.format.video.nFrameHeight,
+ #ifdef USE_SAMSUNG_COLORFORMAT
+             eNativeColorFormat,
++#elif MTK_HARDWARE
++            eHalColorFormat,
+ #else
+             def.format.video.eColorFormat,
+ #endif
+@@ -1433,6 +1450,29 @@ void ACodec::setNativeWindowColorFormat(OMX_COLOR_FORMATTYPE &eNativeColorFormat
+ }
+ #endif
+ 
++#ifdef MTK_HARDWARE
++void ACodec::setHalWindowColorFormat(OMX_COLOR_FORMATTYPE &eHalColorFormat) {
++    ALOGE("[Decker] setHalWindowColorFormat(%#x) - %s",eHalColorFormat,mComponentName.c_str());
++
++    if (!strncmp("OMX.MTK.", mComponentName.c_str(), 8)) {
++        switch (eHalColorFormat) {
++            case OMX_COLOR_FormatYUV420Planar:
++                eHalColorFormat = (OMX_COLOR_FORMATTYPE)HAL_PIXEL_FORMAT_I420;
++                break;
++            case OMX_MTK_COLOR_FormatYV12:
++                eHalColorFormat = (OMX_COLOR_FORMATTYPE)HAL_PIXEL_FORMAT_YV12;
++                break;
++            case OMX_COLOR_FormatVendorMTKYUV:
++                eHalColorFormat = (OMX_COLOR_FORMATTYPE)HAL_PIXEL_FORMAT_NV12_BLK;
++                break;
++            default:
++                eHalColorFormat = (OMX_COLOR_FORMATTYPE)HAL_PIXEL_FORMAT_I420;
++                break;
++        }
++    }
++}
++#endif
++
+ status_t ACodec::cancelBufferToNativeWindow(BufferInfo *info) {
+     CHECK_EQ((int)info->mStatus, (int)BufferInfo::OWNED_BY_US);
+ 
+diff --git a/media/libstagefright/Android.mk b/media/libstagefright/Android.mk
+index e708f68..322253c 100644
+--- a/media/libstagefright/Android.mk
++++ b/media/libstagefright/Android.mk
+@@ -202,6 +202,17 @@ LOCAL_C_INCLUDES += \
+ 	$(TOP)/hardware/samsung/exynos4/include
+ endif
+ 
++# Mediatek
++ifeq ($(strip $(BOARD_HAS_MTK_HARDWARE)),true)
++LOCAL_CFLAGS += -DMTK_HARDWARE
++
++LOCAL_C_INCLUDES += \
++	$(TOP)/hardware/mediatek/dpframework/inc
++
++LOCAL_SHARED_LIBRARIES += \
++	libdpframework
++endif
++
+ LOCAL_MODULE:= libstagefright
+ 
+ LOCAL_MODULE_TAGS := optional
+diff --git a/media/libstagefright/CameraSource.cpp b/media/libstagefright/CameraSource.cpp
+index fc45e38..7d41710 100644
+--- a/media/libstagefright/CameraSource.cpp
++++ b/media/libstagefright/CameraSource.cpp
+@@ -44,6 +44,10 @@
+ #define UNUSED_UNLESS_VERBOSE(x)
+ #endif
+ 
++#ifdef MTK_HARDWARE
++#define OMX_MTK_COLOR_FormatYV12 0x7F000200
++#endif
++
+ namespace android {
+ 
+ static const int64_t CAMERA_SOURCE_TIMEOUT_NS = 3000000000LL;
+@@ -119,7 +123,11 @@ static int32_t getColorFormat(const char* colorFormat) {
+     }
+ 
+     if (!strcmp(colorFormat, CameraParameters::PIXEL_FORMAT_YUV420P)) {
++#ifdef	MTK_HARDWARE
++       return OMX_MTK_COLOR_FormatYV12;
++#else
+        return OMX_COLOR_FormatYUV420Planar;
++#endif
+     }
+ 
+     if (!strcmp(colorFormat, CameraParameters::PIXEL_FORMAT_YUV422SP)) {
+@@ -759,16 +767,6 @@ status_t CameraSource::startCameraRecording() {
+             }
+         }
+ 
+-        err = mCamera->sendCommand(
+-            CAMERA_CMD_SET_VIDEO_FORMAT, mEncoderFormat, mEncoderDataSpace);
+-
+-        // This could happen for CameraHAL1 clients; thus the failure is
+-        // not a fatal error
+-        if (err != OK) {
+-            ALOGW("Failed to set video encoder format/dataspace to %d, %d due to %d",
+-                    mEncoderFormat, mEncoderDataSpace, err);
+-        }
+-
+         // Create memory heap to store buffers as VideoNativeMetadata.
+         createVideoBufferMemoryHeap(sizeof(VideoNativeHandleMetadata), kDefaultVideoBufferCount);
+     }
+diff --git a/media/libstagefright/MediaSource.cpp b/media/libstagefright/MediaSource.cpp
+index a17757a..bc0206f 100644
+--- a/media/libstagefright/MediaSource.cpp
++++ b/media/libstagefright/MediaSource.cpp
+@@ -23,3 +23,24 @@ MediaSource::MediaSource() {}
+ MediaSource::~MediaSource() {}
+ 
+ }  // namespace android
++
++extern "C" {
++
++bool _ZNK7android11MediaSource11ReadOptions14getNonBlockingEv(android::IMediaSource::ReadOptions *readOptions) {
++    bool res = readOptions->getNonBlocking();
++    return res;
++}
++
++bool _ZNK7android11MediaSource11ReadOptions9getSeekToEPxPNS1_8SeekModeE(android::IMediaSource::ReadOptions *readOptions, int64_t *time_us, android::IMediaSource::ReadOptions::SeekMode *mode) {
++    bool res = readOptions->getSeekTo(time_us, mode);
++    return res;
++}
++
++int64_t _ZNK7android11MediaSource11ReadOptions9getLateByEv(android::IMediaSource::ReadOptions *readOptions) {
++    int64_t res = readOptions->getLateBy();
++    return res;
++}
++
++}
++
++
+diff --git a/media/libstagefright/colorconversion/Android.mk b/media/libstagefright/colorconversion/Android.mk
+index 0bf9701..334aa7e 100644
+--- a/media/libstagefright/colorconversion/Android.mk
++++ b/media/libstagefright/colorconversion/Android.mk
+@@ -13,6 +13,13 @@ LOCAL_C_INCLUDES := \
+ LOCAL_STATIC_LIBRARIES := \
+         libyuv_static \
+ 
++ifeq ($(BOARD_HAS_MTK_HARDWARE),true)
++LOCAL_CFLAGS += -DMTK_HARDWARE
++
++LOCAL_C_INCLUDES += \
++        $(TOP)/frameworks/av/include/media/stagefright/dpframework
++endif
++
+ LOCAL_CFLAGS += -Werror
+ LOCAL_CLANG := true
+ LOCAL_SANITIZE := signed-integer-overflow
+diff --git a/media/libstagefright/colorconversion/ColorConverter.cpp b/media/libstagefright/colorconversion/ColorConverter.cpp
+index 3ca7cc0..a2d42a4 100644
+--- a/media/libstagefright/colorconversion/ColorConverter.cpp
++++ b/media/libstagefright/colorconversion/ColorConverter.cpp
+@@ -26,6 +26,14 @@
+ 
+ #define USE_LIBYUV
+ 
++#ifdef MTK_HARDWARE
++#include <DpBlitStream.h>
++
++const OMX_COLOR_FORMATTYPE OMX_MTK_COLOR_FormatYV12 = (OMX_COLOR_FORMATTYPE)0x7F000200;
++const OMX_COLOR_FORMATTYPE OMX_COLOR_FormatVendorMTKYUV = (OMX_COLOR_FORMATTYPE)0x7F000001;
++const OMX_COLOR_FORMATTYPE OMX_COLOR_FormatVendorMTKYUV_FCM = (OMX_COLOR_FORMATTYPE)0x7F000002;
++#endif
++
+ namespace android {
+ 
+ ColorConverter::ColorConverter(
+@@ -33,6 +41,9 @@ ColorConverter::ColorConverter(
+     : mSrcFormat(from),
+       mDstFormat(to),
+       mClip(NULL) {
++
++ALOGE("[Decker] ColorConverter::ColorConverter: %#x --> %#x", from, to);
++
+ }
+ 
+ ColorConverter::~ColorConverter() {
+@@ -51,6 +62,11 @@ bool ColorConverter::isValid() const {
+         case OMX_QCOM_COLOR_FormatYVU420SemiPlanar:
+         case OMX_COLOR_FormatYUV420SemiPlanar:
+         case OMX_TI_COLOR_FormatYUV420PackedSemiPlanar:
++#ifdef MTK_HARDWARE
++        case OMX_MTK_COLOR_FormatYV12:
++        case OMX_COLOR_FormatVendorMTKYUV:
++        case OMX_COLOR_FormatVendorMTKYUV_FCM:
++#endif
+             return true;
+ 
+         default:
+@@ -557,4 +573,93 @@ uint8_t *ColorConverter::initClip() {
+     return &mClip[-kClipMin];
+ }
+ 
++#ifdef MTK_HARDWARE
++status_t ColorConverter::convertYUVToRGBHW(const BitmapParams &src, const BitmapParams &dst) {
++    DpBlitStream blitStream;
++    unsigned int srcWStride = src.mWidth;
++    unsigned int srcHStride = src.mHeight;
++
++    DpRect srcRoi;
++    srcRoi.x = src.mCropLeft;
++    srcRoi.y = src.mCropTop;
++    srcRoi.w = src.mCropRight - src.mCropLeft;
++    srcRoi.h = src.mCropBottom - src.mCropTop;
++
++    unsigned int dstWStride = dst.mWidth ;
++    unsigned int dstHStride = dst.mHeight ;
++    char name_yuv[100];
++    char retriever_yuv_propty[100];
++    char name_rgb[100];
++    char retriever_propty_rgb[100];
++
++    if (mSrcFormat == OMX_COLOR_FormatYUV420Planar) {
++        char* planar[3];
++        unsigned int length[3];
++        planar[0] = (char*)src.mBits;
++        length[0] = srcWStride*srcHStride;
++        planar[1] = planar[0] + length[0];
++	      length[1] = srcWStride*srcHStride/4;
++        planar[2] = planar[1] + length[1];
++        length[2] = length[1];
++
++        blitStream.setSrcBuffer((void**)planar, (unsigned int*)length, 3);
++        blitStream.setSrcConfig(srcWStride, srcHStride, eYUV_420_3P, eInterlace_None, &srcRoi);
++    }
++    else if (mSrcFormat == OMX_MTK_COLOR_FormatYV12) {
++        char* planar[3];
++        unsigned int length[3];
++        planar[0] = (char*)src.mBits;
++        length[0] = srcWStride*srcHStride;
++        planar[1] = planar[0] + length[0];
++        length[1] = srcWStride*srcHStride/4;
++        planar[2] = planar[1] + length[1];
++        length[2] = length[1];
++
++        blitStream.setSrcBuffer((void**)planar, (unsigned int*)length, 3);
++        blitStream.setSrcConfig(srcWStride, srcHStride, eYV12, eInterlace_None, &srcRoi);
++    }
++    else if (mSrcFormat == OMX_COLOR_FormatVendorMTKYUV) {
++        char* planar[2];
++        unsigned int length[2];
++        planar[0] = (char*)src.mBits;
++        length[0] = srcWStride*srcHStride;
++        planar[1] = planar[0] + length[0];
++        length[1] = srcWStride*srcHStride/2;
++
++        blitStream.setSrcBuffer((void**)planar, (unsigned int*)length, 2);
++        blitStream.setSrcConfig(srcWStride, srcHStride, srcWStride * 32, srcWStride * 16, eNV12_BLK, DP_PROFILE_BT601, eInterlace_None, &srcRoi);
++    }
++    else if (mSrcFormat == OMX_COLOR_FormatVendorMTKYUV_FCM) {
++        char* planar[2];
++        unsigned int length[2];
++        planar[0] = (char*)src.mBits;
++        length[0] = srcWStride*srcHStride;
++        planar[1] = planar[0] + length[0];
++        length[1] = srcWStride*srcHStride/2;
++
++        blitStream.setSrcBuffer((void**)planar, (unsigned int*)length, 2);
++        blitStream.setSrcConfig(srcWStride, srcHStride, srcWStride * 32, srcWStride * 16, eNV12_BLK_FCM, DP_PROFILE_BT601, eInterlace_None, &srcRoi);
++    }
++
++    if (mDstFormat == OMX_COLOR_Format16bitRGB565) {
++        blitStream.setDstBuffer(dst.mBits, dst.mWidth * dst.mHeight * 2);
++        blitStream.setDstConfig(dst.mWidth, dst.mHeight, eRGB565);
++    }
++    else if (mDstFormat == OMX_COLOR_Format32bitARGB8888) {
++        blitStream.setDstBuffer(dst.mBits, dst.mWidth * dst.mHeight * 4);
++        blitStream.setDstConfig(dst.mWidth, dst.mHeight, eRGBA8888);
++    }
++
++    // Add Sharpness in Video Thumbnail
++    blitStream.setTdshp(1);
++    bool bRet = blitStream.invalidate();
++
++    if (!bRet)
++        return OK;
++    else
++        return UNKNOWN_ERROR;
++}
++#endif
++
++
+ }  // namespace android
+diff --git a/services/audioflinger/Threads.cpp b/services/audioflinger/Threads.cpp
+index facfc86..dfb9888 100644
+--- a/services/audioflinger/Threads.cpp
++++ b/services/audioflinger/Threads.cpp
+@@ -6469,20 +6469,21 @@ reacquire_wakelock:
+         mTimestamp.mTimeNs[ExtendedTimestamp::LOCATION_SERVER] = systemTime();
+ 
+         // Update server timestamp with kernel stats
+-        if (mInput->stream->get_capture_position != nullptr
+-                && mPipeSource.get() == nullptr /* don't obtain for FastCapture, could block */) {
+-            int64_t position, time;
+-            int ret = mInput->stream->get_capture_position(mInput->stream, &position, &time);
+-            if (ret == NO_ERROR) {
+-                mTimestamp.mPosition[ExtendedTimestamp::LOCATION_KERNEL] = position;
+-                mTimestamp.mTimeNs[ExtendedTimestamp::LOCATION_KERNEL] = time;
+-                // Note: In general record buffers should tend to be empty in
+-                // a properly running pipeline.
+-                //
+-                // Also, it is not advantageous to call get_presentation_position during the read
+-                // as the read obtains a lock, preventing the timestamp call from executing.
+-            }
+-        }
++
++        // if (mInput->stream->get_capture_position != nullptr
++        //         && mPipeSource.get() == nullptr /* don't obtain for FastCapture, could block */) {
++        //     int64_t position, time;
++        //     int ret = mInput->stream->get_capture_position(mInput->stream, &position, &time);
++        //     if (ret == NO_ERROR) {
++        //         mTimestamp.mPosition[ExtendedTimestamp::LOCATION_KERNEL] = position;
++        //         mTimestamp.mTimeNs[ExtendedTimestamp::LOCATION_KERNEL] = time;
++        //         // Note: In general record buffers should tend to be empty in
++        //         // a properly running pipeline.
++        //         //
++        //         // Also, it is not advantageous to call get_presentation_position during the read
++        //         // as the read obtains a lock, preventing the timestamp call from executing.
++        //     }
++        // }
+         // Use this to track timestamp information
+         // ALOGD("%s", mTimestamp.toString().c_str());
+ 
